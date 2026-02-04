@@ -1,0 +1,23 @@
+# ----------------------------------
+# WordPress core files
+# ----------------------------------
+/wp-admin/
+/wp-includes/
+/wp-content/index.php
+/wp-content/upgrade/
+/wp-content/uploads/
+/wp-content/backup-*
+
+# ----------------------------------
+# WordPress config
+# ----------------------------------
+wp-config.php
+wp-config-sample.php
+
+# ----------------------------------
+# Logs & cache
+# ----------------------------------
+*.log
+*.cache
+/wp-content/cache/
+/wp-content/debug.log
