@@ -1,0 +1,8 @@
+/**
+ * recording admin css
+ */
+
+.recording-expiry-btn-wrap {width: 100%;}
+.recording-expiry-progress {width:100%; background-color:#ddd;}
+.recording-expiry-progress-bar {width:0; height:5px; background-color:#007cba;}
+.recording-expiry-update-msg {}

@@ -1,0 +1,23 @@
+<svg id="list" xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #2d353f;
+        stroke-width: 5px;
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        fill: #2d353f;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M15,5H285a10,10,0,0,1,10,10V285a10,10,0,0,1-10,10H15A10,10,0,0,1,5,285V15A10,10,0,0,1,15,5Z"/>
+  <rect class="cls-2" x="40" y="42" width="147" height="50" rx="10" ry="10"/>
+  <rect class="cls-2" x="209.75" y="42" width="50.25" height="50.25" rx="10" ry="10"/>
+  <rect id="Rectangle_2_copy" data-name="Rectangle 2 copy" class="cls-2" x="40" y="125" width="147" height="50" rx="10" ry="10"/>
+  <rect id="Rectangle_3_copy" data-name="Rectangle 3 copy" class="cls-2" x="210" y="125" width="50" height="50" rx="10" ry="10"/>
+  <rect id="Rectangle_2_copy_2" data-name="Rectangle 2 copy 2" class="cls-2" x="40" y="209" width="147" height="50" rx="10" ry="10"/>
+  <rect id="Rectangle_3_copy_2" data-name="Rectangle 3 copy 2" class="cls-2" x="210.25" y="209" width="49.75" height="49.75" rx="10" ry="10"/>
+</svg>

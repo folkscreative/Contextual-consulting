@@ -1,0 +1,12 @@
+[20-Jan-2026 18:29:58 Europe/London] PHP Fatal error:  Uncaught Error: Call to undefined function get_header() in /home/contextualconsul/public_html/wp-content/themes/contextual/index.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/contextualconsul/public_html/wp-content/themes/contextual/index.php on line 15
+[22-Jan-2026 12:41:43 Europe/London] PHP Fatal error:  Uncaught Error: Call to undefined function get_header() in /home/contextualconsul/public_html/wp-content/themes/contextual/index.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/contextualconsul/public_html/wp-content/themes/contextual/index.php on line 15
+[22-Jan-2026 14:40:03 Europe/London] PHP Fatal error:  Uncaught Error: Call to undefined function get_header() in /home/contextualconsul/public_html/wp-content/themes/contextual/index.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/contextualconsul/public_html/wp-content/themes/contextual/index.php on line 15

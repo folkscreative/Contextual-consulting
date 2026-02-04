@@ -1,0 +1,21 @@
+<svg id="grid_active" data-name="grid active" xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #1b75ba;
+        stroke: #2d353f;
+        stroke-width: 5px;
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M15,5H285a10,10,0,0,1,10,10V285a10,10,0,0,1-10,10H15A10,10,0,0,1,5,285V15A10,10,0,0,1,15,5Z"/>
+  <rect class="cls-2" x="40" y="40" width="94.5" height="94.5" rx="10" ry="10"/>
+  <rect class="cls-2" x="165" y="40" width="94.5" height="94.5" rx="10" ry="10"/>
+  <rect class="cls-2" x="40" y="165" width="95" height="95" rx="10" ry="10"/>
+  <rect class="cls-2" x="164" y="165" width="95" height="95" rx="10" ry="10"/>
+</svg>

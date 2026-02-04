@@ -1,0 +1,258 @@
+# Translation of Plugins - Code Embed - Stable (latest release) in English (UK)
+# This file is distributed under the same license as the Plugins - Code Embed - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2024-04-21 16:09:54+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: GlotPress/4.0.1\n"
+"Language: en_GB\n"
+"Project-Id-Version: Plugins - Code Embed - Stable (latest release)\n"
+
+#. translators: 1: The plugin name.
+#: includes/shared.php:91
+msgid "The author of %1$s will not provide any support until the above are resolved."
+msgstr "The author of %1$s will not provide any support until the above are resolved."
+
+#. translators: 1: The plugin name.
+#: includes/shared.php:91
+msgid "A fork of WordPress was detected."
+msgstr "A fork of WordPress was detected."
+
+#. translators: 1: The plugin name.
+#: includes/shared.php:89
+msgid "Reason:"
+msgstr "Reason:"
+
+#. translators: 1: The plugin name.
+#: includes/shared.php:89
+msgid "%1$s has been deactivated"
+msgstr "%1$s has been deactivated"
+
+#: includes/shared.php:29
+msgid "Rate the plugin on WordPress.org"
+msgstr "Rate the plugin on WordPress.org"
+
+#. Author URI of the plugin
+#: simple-code-embed.php
+msgid "https://artiss.blog"
+msgstr "https://artiss.blog"
+
+#. Description of the plugin
+#: simple-code-embed.php
+msgid "Code Embed provides a very easy and efficient way to embed code (JavaScript and HTML) in your posts and pages."
+msgstr "Code Embed provides a very easy and efficient way to embed code (JavaScript and HTML) in your posts and pages."
+
+#: includes/search-screen.php:12
+msgid "Code Embed search"
+msgstr "Code Embed search"
+
+#: includes/options-screen.php:49
+msgid "Settings saved."
+msgstr "Settings saved."
+
+#: includes/screens.php:158
+msgid "Support Forum"
+msgstr "Support Forum"
+
+#: includes/screens.php:157
+msgid "Github (code and issues)"
+msgstr "Github (code and issues)"
+
+#: includes/screens.php:156
+msgid "Instructions"
+msgstr "Instructions"
+
+#: includes/screens.php:155
+msgid "For more information:"
+msgstr "For more information:"
+
+#: includes/shared.php:26
+msgid "Github"
+msgstr "Github"
+
+#. translators: %1$s: embed name, %2$d: number of pieces of code being stored
+#. with that name, %3$d: number of posts using that embed name
+#: includes/add-embeds.php:234
+msgid "Cannot use %1$s as a global code as it is being used to store %2$d unique pieces of code in %3$d posts"
+msgstr "Cannot use %1$s as a global code as it is being used to store %2$d unique pieces of code in %3$d posts"
+
+#: includes/add-embeds.php:149
+msgid "File could not be fetched"
+msgstr "File could not be fetched"
+
+#: includes/options-screen.php:91
+msgid "Save changes"
+msgstr "Save changes"
+
+#: includes/options-screen.php:64
+msgid "Allow embedded code to be shown in excerpts"
+msgstr "Allow embedded code to be shown in excerpts"
+
+#: includes/options-screen.php:61
+msgid "Allow in excerpts"
+msgstr "Allow in excerpts"
+
+#: includes/screens.php:123
+msgid "The second option allows to specify whether code embed requests should work in excerpts."
+msgstr "The second option allows to specify whether code embed requests should work in excerpts."
+
+#. Author of the plugin
+#: simple-code-embed.php
+msgid "David Artiss"
+msgstr "David Artiss"
+
+#. Plugin URI of the plugin
+#: simple-code-embed.php
+msgid "https://wordpress.org/plugins/simple-embed-code/"
+msgstr "https://en-gb.wordpress.org/plugins/simple-embed-code/"
+
+#: includes/search-screen.php:88
+msgid "No posts were found containing that embed code."
+msgstr "No posts were found containing that embed code."
+
+#: includes/search-screen.php:43
+msgid "Search"
+msgstr "Search"
+
+#: includes/search-screen.php:15
+msgid "Enter the suffix to search for below and press the 'Search' button to view the results. Further help can be found by clicking on the Help tab at the top right-hand of the screen."
+msgstr "Enter the suffix to search for below and press the 'Search' button to view the results. Further help can be found by clicking on the Help tab at the top right-hand of the screen."
+
+#. translators: %1$s: example of embedding a file, %2$s: details of key used in
+#. example
+#: includes/options-screen.php:114
+msgid "To embed an external URL you would type %1$s, where %2$s is the URL."
+msgstr "To embed an external URL you would type %1$s, where %2$s is the URL."
+
+#. translators: %1$s: example embedding for responsive layout , %2$s: details
+#. of key used in example
+#: includes/options-screen.php:111
+msgid "To embed the same code but to make it responsive you would use %1$s. To set a maximum width you would use %2$s, where %3$s is the maximum width in pixels."
+msgstr "To embed the same code but to make it responsive you would use %1$s. To set a maximum width you would use %2$s, where %3$s is the maximum width in pixels."
+
+#. translators: %1$s: another example of adding a custom field, %2$s: another
+#. example of adding embed to a post
+#: includes/options-screen.php:108
+msgid "For example, I may add a custom field named %1$s, where the value is the code I wish to embed. I would then in my post add %2$s where I wish the code to then appear."
+msgstr "For example, I may add a custom field named %1$s, where the value is the code I wish to embed. I would then in my post add %2$s where I wish the code to then appear."
+
+#. translators: %1$s: example of how to embed code in a post based on current
+#. settings, %2$s: details of key used in example
+#: includes/options-screen.php:105
+msgid "Then, to add the code into your post simple add %1$s where you wish it to appear. %2$s is the suffix you used for the custom field name."
+msgstr "Then, to add the code into your post simple add %1$s where you wish it to appear. %2$s is the suffix you used for the custom field name."
+
+#. translators: %1$s: example of custom field key value to use based on current
+#. settings, %2$s: details of key used in example
+#: includes/options-screen.php:102
+msgid "Based upon your current settings to embed some code simply add a custom field named %1$s, where %2$s is any suffix you wish. The code to embed is then added as the field value."
+msgstr "Based upon your current settings to embed some code simply add a custom field named %1$s, where %2$s is any suffix you wish. The code to embed is then added as the field value."
+
+#: includes/options-screen.php:99
+msgid "How to embed"
+msgstr "How to embed"
+
+#: includes/options-screen.php:84
+msgid "The character(s) that must be placed in the post after the keyword to uniquely identify it."
+msgstr "The character(s) that must be placed in the post after the keyword to uniquely identify it."
+
+#: includes/options-screen.php:83
+msgid "Closing Identifier"
+msgstr "Closing Identifier"
+
+#: includes/options-screen.php:79
+msgid "The character(s) that must be placed in the post before the keyword to uniquely identify it."
+msgstr "The character(s) that must be placed in the post before the keyword to uniquely identify it."
+
+#: includes/options-screen.php:78
+msgid "Opening Identifier"
+msgstr "Opening Identifier"
+
+#: includes/options-screen.php:74
+msgid "The keyword that is used to name the custom field and then place in your post where the code should be embedded. A suffix on any type can then be placed on the end."
+msgstr "The keyword that is used to name the custom field and then place in your post where the code should be embedded. A suffix on any type can then be placed on the end."
+
+#: includes/options-screen.php:73
+msgid "Keyword"
+msgstr "Keyword"
+
+#: includes/options-screen.php:68
+msgid "Specify the format that will be used to define the way the code is embedded in your post. The formats are case insensitive and characters &lt; &gt [ ] are invalid."
+msgstr "Specify the format that will be used to define the way the code is embedded in your post. The formats are case insensitive and characters &lt; &gt [ ] are invalid."
+
+#: includes/options-screen.php:68
+msgid "Identifier format"
+msgstr "Identifier format"
+
+#: includes/options-screen.php:14
+msgid "Code Embed options"
+msgstr "Code Embed options"
+
+#. translators: %s: the embed name
+#: includes/add-embeds.php:242
+msgid "No embed code was found for %s"
+msgstr "No embed code was found for %s"
+
+#: includes/screens.php:141
+msgid "The search results are grouped together in matching code groups, so posts with the same code will be shown together with the same color background."
+msgstr "The search results are grouped together in matching code groups, so posts with the same code will be shown together with the same colour background."
+
+#: includes/screens.php:140
+msgid "Simply enter the code suffix that you wish to search for and press the 'Search' key to display a list of all the posts using it. In addition the code will be shown alongside it. Click on the post name to edit the post."
+msgstr "Simply enter the code suffix that you wish to search for and press the 'Search' key to display a list of all the posts using it. In addition the code will be shown alongside it. Click on the post name to edit the post."
+
+#: includes/screens.php:139
+msgid "This screen allows you to search for the post and pages that a particular code embed has been used in."
+msgstr "This screen allows you to search for the post and pages that a particular code embed has been used in."
+
+#: includes/screens.php:125
+msgid "The keyword, sandwiched with the identifier before and after, is what you then need to add to your post or page to activate the embed code."
+msgstr "The keyword, sandwiched with the identifier before and after, is what you then need to add to your post or page to activate the embed code."
+
+#: includes/screens.php:124
+msgid "The keyword is the name used for your custom field. The custom field's value is the code that you wish to embed."
+msgstr "The keyword is the name used for your custom field. The custom field's value is the code that you wish to embed."
+
+#: includes/screens.php:122
+msgid "The first option allows to suppress debug output. Normally this is an HTML comment in your page source - if you wish to hide this then simply tick this option."
+msgstr "The first option allows to suppress debug output. Normally this is an HTML comment in your page source - if you wish to hide this then simply tick this option."
+
+#: includes/screens.php:121
+msgid "Use this screen to modify the various settings, including the identifiers and keyword used to specify your embedded code."
+msgstr "Use this screen to modify the various settings, including the identifiers and keyword used to specify your embedded code."
+
+#: includes/screens.php:57 includes/screens.php:84
+msgid "Help"
+msgstr "Help"
+
+#. Plugin Name of the plugin
+#: simple-code-embed.php includes/screens.php:31
+msgid "Code Embed"
+msgstr "Code Embed"
+
+#: includes/screens.php:31
+msgid "Code Embed Settings"
+msgstr "Code Embed Settings"
+
+#: includes/screens.php:23
+msgid "Code Search"
+msgstr "Code Search"
+
+#: includes/screens.php:23
+msgid "Code Embed Search"
+msgstr "Code Embed Search"
+
+#: includes/shared.php:28
+msgid "Donate"
+msgstr "Donate"
+
+#: includes/shared.php:27
+msgid "Support"
+msgstr "Support"
+
+#: includes/shared.php:55
+msgid "Settings"
+msgstr "Settings"

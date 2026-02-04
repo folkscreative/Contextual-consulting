@@ -1,0 +1,170 @@
+.recording-wrapper {
+	min-height: 400px;
+	/*padding: 20px;*/
+	margin: 10px 3% 30px;
+	/*max-width: 970px !important;*/
+	overflow: hidden;
+}
+
+.recording-wrapper.one-recording {text-align: center;}
+
+.recording-box {
+	/*width: 31%;*/
+	text-align: center;
+	vertical-align: top;
+	/*margin: 0 3% 0 0;*/
+	padding: 0 5px;
+}
+
+.two-recordings .recording-box {
+	width: 50%;
+	padding: 0 2%;
+	float: left;
+}
+
+.three-recordings .recording-box {
+	width: 33%;
+	padding: 0 2%;
+	float: left;
+}
+
+.recording-box img { 
+	margin-bottom: 10px;
+}
+
+.recording-text {
+	height: 135px;
+	display: block;
+	overflow: hidden;
+}
+
+.recording-box h3 { 
+	margin-bottom: 10px;
+	padding: 0 10px;
+	/*overflow: hidden;*/
+	white-space: normal;
+}
+
+.recording-box p { 
+	padding: 0 10px;
+	white-space: normal;
+	max-height: 110px;
+	overflow: hidden;
+}
+
+#previd {
+	position: absolute;
+	left: 0px;
+	top: 30%;
+	text-decoration: none;
+	font-size: 70px;
+	color: #284361;
+	outline: 0;
+}
+
+#previd:hover {
+	color: #517dba;
+}
+
+#nextid {
+	position: absolute; 
+	right: 0px; top: 30%; 
+	text-decoration: none; 
+	font-size: 70px; color: #284361; 
+	outline: 0;
+}
+
+#nextid:hover {
+	color: #517dba;
+}
+
+@media screen and (max-width: 600px) {
+	/*.recording-wrapper {padding: 30px 0; margin: 0 auto; width: 300px !important;}*/
+	/*.recording-box {width: 33%;}*/
+	/*.recording-box {width: 300px; margin: 0 auto;}*/
+	.two-recordings .recording-box, .three-recordings .recording-box {width: 100%;}
+	#previd, #nextid {top: 8%;}
+/*	.blue, .pink, .orange, .green, .turquoise {background-color: #fff !important;}*/
+	.service-test {width: 300px; margin: 0 auto;}
+}
+@media screen and (max-width: 300px){
+	.recording-text {height: 165px;}
+}
+
+.single-recording .button {
+	margin-right: 20px;
+}
+
+iframe.register {
+	width: 100%;
+	height: 1500px;
+}
+
+.single-recording form {
+	display: inline-block;
+	margin: 0;
+}
+
+.recording-archive .recording-item {border-bottom: 1px solid #eee; margin-top: 15px;}
+.recording-archive .recording-featimg {max-width: 20%; float: left; margin-right: 3%;}
+@media screen and (max-width: 800px) {
+	.recording-archive .recording-featimg {max-width: 50%;}
+}
+@media screen and (max-width: 600px) {
+	.recording-archive .recording-featimg {max-width: 100%; float: none; margin: 0;}
+}
+
+.single-recording .recording-featimg {max-width: 30%;}
+@media screen and (max-width: 600px) {
+	.single-recording .recording-featimg {display: none;}
+}
+
+/*
+.wkshp-event {background: #eee; display: inline-block; padding: 0 20px; width: 66%;}
+.wkshp-name, .wkshp-reg, .wkshp-venue {display: inline-block;}
+.wkshp-name {width:44%; margin-right:20px;}
+@media screen and (max-width:1020px) {
+	.wkshp-name {width:40%;}
+}
+@media screen and (max-width:960px) {
+	.wkshp-name {width:30%;}
+}
+@media screen and (max-width:850px) {
+	.wkshp-event {display: block; width: auto; clear: both;}
+	.wkshp-name {width: 50%;}
+}
+@media screen and (max-width:760px) {
+	.wkshp-name {width:40%;}
+}
+@media screen and (max-width:650px) {
+	.wkshp-name {width:30%;}
+}
+@media screen and (max-width:600px) {
+	.wkshp-name {width:100%;}
+}
+*/
+.wkshp-bottom {width: 100%; margin-top: 20px;}
+
+.watch-button, .watch-button:visited {background: #497700;}
+.watch-button:hover, .watch-button:active, .watch-button:focus {background: #78ba00;}
+
+.recording-cta {background: #eee;}
+.recording-cta.top {display: inline-block; width: 66%;}
+.recording-cta.bottom {margin-top: 15px;}
+.recording-cta-heading {background: #517dba; color: #ffffff; padding: 5px 20px; margin:0;}
+.recording-cta-text {padding-left: 20px;}
+.recording-cta.top .recording-cta-text {}
+.recording-cta.bottom .recording-cta-text {width:45%; margin-right: 5%; float: left;}
+.recording-cta-btn-wrap {padding-right: 20px; text-align: right;}
+.recording-cta.top .recording-cta-btn-wrap {}
+.recording-cta.bottom .recording-cta-btn-wrap {width: 50%; float: right;}
+@media (min-width:600px){
+	.recording-cta.top .recording-cta-text {width:45%; margin-right: 5%; float: left;}
+	.recording-cta.top .recording-cta-btn-wrap {width: 50%; float: right;}
+}
+
+/* hd video */
+.hd-video-container {position: relative; padding-bottom: 56.25%; padding-top: 0; height: 0; overflow: hidden;}
+.hd-video-container.HD720, .hd-video-container.HD720 iframe {max-width: 1280px; max-height: 720px;}
+.hd-video-container.HD1080, .hd-video-container.HD1080 iframe {max-width: 1920px; max-height: 1080px;}
+.hd-video-container iframe {position: absolute; top: 0; left: 0; width: 100%; height: 100%;}

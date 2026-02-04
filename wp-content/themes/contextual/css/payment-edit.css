@@ -1,0 +1,40 @@
+/**
+ * Paymemnty Edit Styles
+ */
+
+.ccpa-edit-payment-panel {background:#fff; padding: 15px 30px; border: 1px solid #aaa; margin-top: 20px; margin-right: 20px;}
+.ccpa-row {margin-left: -15px; margin-right: -15px;}
+.ccpa-row:before, .ccpa-row:after {display: table; content: " ";}
+.ccpa-row:after {clear: both;}
+.ccpa-col {position: relative; padding: 10px 15px;  min-height: 1px; max-width: 100%; float: left; box-sizing: border-box;}
+.ccpa-row .col-1 {width: 8.333333%;}
+.ccpa-row .col-2 {width: 16.666667%;}
+.ccpa-row .col-3 {width: 25%;}
+.ccpa-row .col-4 {width: 33.333333%;}
+.ccpa-row .col-5 {width: 41.666667%;}
+.ccpa-row .col-6 {width: 50%;}
+.ccpa-row .col-7 {width: 58.333333%;}
+.ccpa-row .col-8 {width: 66.666667%;}
+.ccpa-row .col-9 {width: 75%;}
+.ccpa-row .col-10 {width: 83.333333%;}
+.ccpa-row .col-11 {width: 91.666667%;}
+.ccpa-row .col-12 {width: 100%;}
+.upd-flag {color:#3c763d; font-size:20px; display: none;}
+.wait-flag {color:#ff9900; font-size:20px; display: none;}
+input, select {width: 100%;}
+.wp-core-ui .ccpa-col select {max-width: 100%}
+.ccpa-scroller {max-height: 400px; overflow: auto; padding: 5px 15px; border: 1px solid #ccc; border-radius: 3px; }
+a.btn, a.btn:visited {background: #17a2b8; padding: 5px 12px 8px; border: 1px solid #17a2b8; border-radius: 9px; margin-top: 5px; display: inline-block; text-decoration: none; color:#fff; text-align: center;}
+a.btn:hover, a.btn:active, a.btn:focus {background: #fff; color: #17a2b8;}
+a.btn.disabled {pointer-events: none; opacity: .65;}
+.action-msg.success {background: #28a745; color: #fff; padding: 15px; }
+.action-msg.error {background: #dc3545; color: #fff; padding: 15px; }
+.refund-wrap {display: inline-block; border:1px solid #ccc; padding: 10px;}
+.refund-request {width: 100px;}
+
+.email-update-popup-wrap {position: fixed; top:200px; left:25%; right:25%; display: none; background: #fff; padding: 20px; border: 1px solid #aaa; box-shadow: 0 0 200px 50px #999; border-radius:5px;}
+.email-option-wrap {}
+a.email-option {background: #eee; color:#555; display: block; padding-top: 10px; padding-bottom: 12px;}
+a.email-option.chosen {background:#28a745; color:#fff;}
+.text-right {text-align: right;}
+a.btn-cancel {background: #fff; color:#ff9900;}

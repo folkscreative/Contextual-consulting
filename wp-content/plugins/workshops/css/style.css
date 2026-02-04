@@ -1,0 +1,172 @@
+.workshop-wrapper {
+	min-height: 400px;
+	/*padding: 20px;*/
+	margin: 10px 3% 30px;
+	/*max-width: 970px !important;*/
+	overflow: hidden;
+}
+
+.workshop-wrapper.one-workshop {text-align: center;}
+
+.workshop-box {
+	/*width: 31%;*/
+	text-align: center;
+	vertical-align: top;
+	/*margin: 0 3% 0 0;*/
+	padding: 0 5px;
+}
+
+.two-workshops .workshop-box {
+	width: 50%;
+	padding: 0 2%;
+	float: left;
+}
+
+.three-workshops .workshop-box {
+	width: 33%;
+	padding: 0 2%;
+	float: left;
+}
+
+.workshop-box img { 
+	margin-bottom: 10px;
+}
+
+.workshop-text {
+	/*height: 135px;*/
+	display: block;
+	overflow: hidden;
+}
+
+.workshop-box h3, .workshop-box h4, .workshop-box h5, .workshop-box h6 { 
+	margin-bottom: 10px;
+	padding: 0 10px;
+	/*overflow: hidden;*/
+	white-space: normal;
+}
+.workshop-box h4 {font-style: italic; font-size: 16px;}
+.workshop-box p { 
+	padding: 0 10px;
+	white-space: normal;
+	max-height: 110px;
+	overflow: hidden;
+}
+
+#previd {
+	position: absolute;
+	left: 0px;
+	top: 30%;
+	text-decoration: none;
+	font-size: 70px;
+	color: #284361;
+	outline: 0;
+}
+
+#previd:hover {
+	color: #517dba;
+}
+
+#nextid {
+	position: absolute; 
+	right: 0px; top: 30%; 
+	text-decoration: none; 
+	font-size: 70px; color: #284361; 
+	outline: 0;
+}
+
+#nextid:hover {
+	color: #517dba;
+}
+
+@media screen and (max-width: 600px) {
+	/*.workshop-wrapper {padding: 30px 0; margin: 0 auto; width: 300px !important;}*/
+	/*.workshop-box {width: 33%;}*/
+	/*.workshop-box {width: 300px; margin: 0 auto;}*/
+	.two-workshops .workshop-box, .three-workshops .workshop-box {width: 100%;}
+	#previd, #nextid {top: 8%;}
+/*	.blue, .pink, .orange, .green, .turquoise {background-color: #fff !important;}*/
+	.service-test {width: 300px; margin: 0 auto;}
+}
+@media screen and (max-width: 300px){
+	.workshop-text {height: 165px;}
+}
+
+.single-workshop .button {
+	margin-right: 20px;
+}
+
+iframe.register {
+	width: 100%;
+	height: 1500px;
+}
+
+.single-workshop form {
+	display: inline-block;
+	margin: 0;
+}
+
+.workshop-archive .workshop-item {border-bottom: 1px solid #eee; margin-top: 15px;}
+.workshop-archive .workshop-featimg {max-width: 20%; float: left; margin-right: 3%;}
+@media screen and (max-width: 800px) {
+	.workshop-archive .workshop-featimg {max-width: 50%;}
+}
+@media screen and (max-width: 600px) {
+	.workshop-archive .workshop-featimg {max-width: 100%; float: none; margin: 0;}
+}
+
+.single-workshop .workshop-featimg {max-width: 30%;}
+@media screen and (max-width: 600px) {
+	.single-workshop .workshop-featimg {display: none;}
+}
+
+/*
+.wkshp-event {background: #eee; display: inline-block; padding: 0 20px; width: 100%; border-bottom: 1px solid #ddd;}
+.wkshp-pricing {background: #eee; display: inline-block; padding: 10px 20px; width: 100%; line-height: 25px;}
+.wkshp-name, .wkshp-reg, .wkshp-venue, .wkshp-date, .wkshp-price, .wkshp-select, .per-pricing {display: inline-block;}
+.wkshp-venue {margin-left: 20px;}
+.wkshp-venue a.wms-button {line-height: 14px;}
+.wkshp-name {width:100%;}
+.wkshp-date {width:50%; margin-right: 5%;}
+.wkshp-price {width:25%; margin-right: 5%;}
+.wkshp-select {width:15%; text-align: center;}
+.per-pricing {width: 60%; margin-right: 5%; float: left;}
+.tot-pricing {text-align: right;}
+.discounting {text-align: right;}
+@media (min-width: 850px){
+	.wkshp-event, .wkshp-pricing {width: 66%;}
+	.events-panel .wkshp-event, .events-panel .wkshp-pricing {width: 100%;}
+}
+@media (min-width: 992px){
+	.wkshp-name {width:40%; margin-right:5%;}
+	.wkshp-date {width:20%;}
+	.wkshp-price {width:15%;}
+	.wkshp-select {width:10%;}
+}
+.reg-btn-wrap {text-align: right;}
+.reg-heading {background: #517dba; color: #ffffff; padding: 5px 20px; margin: 15px 0 0;}
+
+@media screen and (max-width:1020px) {
+	.wkshp-name {width:40%;}
+}
+@media screen and (max-width:960px) {
+	.wkshp-name {width:30%;}
+}
+@media screen and (max-width:850px) {
+	.wkshp-event {display: block; width: auto; clear: both;}
+	.wkshp-name {width: 50%;}
+}
+@media screen and (max-width:760px) {
+	.wkshp-name {width:40%;}
+}
+@media screen and (max-width:650px) {
+	.wkshp-name {width:30%;}
+}
+@media screen and (max-width:600px) {
+	.wkshp-name {width:100%;}
+}
+*/
+.wkshp-bottom {width: 100%; margin-top: 20px;}
+
+.upsell-label {display: inline !important;}
+.excl-vat {display: none;}
+.vat-msg-up {display:none;}
