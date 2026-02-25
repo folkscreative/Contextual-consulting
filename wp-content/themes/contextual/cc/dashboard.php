@@ -103,10 +103,108 @@ function dashboard_get_user_stats_top( $org ){
 // monthly stats by type
 add_action('wp_ajax_get_monthly_breakdown', 'ajax_get_monthly_breakdown');
 function ajax_get_monthly_breakdown() {
+
+	global $wpdb;
+
+	$org        = sanitize_text_field($_POST['org']);
+	$period     = sanitize_text_field($_POST['period']);
+	$serviceType = sanitize_text_field($_POST['serviceType'] ?? '');
+	$borough     = sanitize_text_field($_POST['borough'] ?? '');
+
+	$org_uc = strtoupper($org);
+	$payments_table = $wpdb->prefix . 'ccpa_payments';
+
+	// =========================
+	// Date range
+	// =========================
+
+	if ($period == 'this_month') {
+		$start = date('Y-m-01 00:00:00');
+		$end   = date('Y-m-t 23:59:59');
+
+	} elseif ($period == 'last_month') {
+		$start = date('Y-m-01 00:00:00', strtotime('-1 month'));
+		$end   = date('Y-m-t 23:59:59', strtotime('-1 month'));
+
+	} elseif (preg_match('/^\d{4}-\d{2}$/', $period)) {
+		$start = $period . '-01 00:00:00';
+		$end   = date('Y-m-t 23:59:59', strtotime($start));
+
+	} else {
+		wp_send_json_error('Invalid period');
+	}
+
+	// =========================
+	// Base Query (with joins)
+	// =========================
+
+	$query = "
+		SELECT 
+			p.type,
+			COUNT(*) as cnt, 
+			SUM(p.disc_amount) as amt
+
+		FROM $payments_table p
+
+		JOIN {$wpdb->users} u 
+			ON u.ID = p.reg_userid
+
+		LEFT JOIN {$wpdb->usermeta} um_service 
+			ON um_service.user_id = u.ID 
+			AND um_service.meta_key = 'nlft_service_type'
+
+		LEFT JOIN {$wpdb->usermeta} um_borough 
+			ON um_borough.user_id = u.ID 
+			AND um_borough.meta_key = 'nlft_borough'
+
+		WHERE p.last_update BETWEEN %s AND %s
+		  AND p.disc_code = %s
+		  AND (
+		        p.status = 'Payment not needed'
+		     OR p.status = 'Cancelled'
+		     OR p.status LIKE 'Linked to #%%'
+		  )
+		  AND (p.type = 'recording' OR p.type = '' OR p.type IS NULL)
+	";
+
+	$params = [$start, $end, $org_uc];
+
+	// =========================
+	// Optional Filters
+	// =========================
+
+	if (!empty($serviceType)) {
+		$query .= " AND um_service.meta_value = %s";
+		$params[] = $serviceType;
+	}
+
+	if (!empty($borough)) {
+		$query .= " AND um_borough.meta_value = %s";
+		$params[] = $borough;
+	}
+
+	$query .= " GROUP BY p.type";
+
+	// =========================
+	// Execute
+	// =========================
+
+	$results = $wpdb->get_results(
+		$wpdb->prepare($query, $params),
+		ARRAY_A
+	);
+
+	wp_send_json_success($results);
+}
+
+/* function ajax_get_monthly_breakdown() {
 	global $wpdb;
 
 	$org = sanitize_text_field($_POST['org']);
 	$period = sanitize_text_field($_POST['period']);
+    $serviceType = sanitize_text_field($_POST['serviceType']);
+    $borough = sanitize_text_field($_POST['borough']);
+        
 	$org_uc = strtoupper($org);
 	$payments_table = $wpdb->prefix . 'ccpa_payments';
 
@@ -140,121 +238,354 @@ function ajax_get_monthly_breakdown() {
 		GROUP BY type
 	";
 
-	/*
-	$query = "
-		SELECT type, COUNT(*) as cnt, SUM(disc_amount) as amt
-		FROM $payments_table
-		WHERE last_update BETWEEN %s AND %s
-		  AND disc_code = %s
-		GROUP BY type
-	";
-	*/
+	
 
 	$results = $wpdb->get_results($wpdb->prepare($query, $start, $end, $org_uc), ARRAY_A);
 
 	wp_send_json_success($results);
 }
-
+ */
 // monthly type user reg details
 add_action('wp_ajax_get_monthly_type_breakdown', 'ajax_get_monthly_type_breakdown');
+
 function ajax_get_monthly_type_breakdown() {
+
     global $wpdb;
 
-    $org = sanitize_text_field($_POST['org']);
-    $period = sanitize_text_field($_POST['period']);
-    $training_type = sanitize_text_field($_POST['training_type']);
+    // -----------------------------------
+    // Sanitize inputs
+    // -----------------------------------
+    $org           = isset($_POST['org']) ? sanitize_text_field($_POST['org']) : '';
+    $period        = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : '';
+    $training_type = isset($_POST['training_type']) ? sanitize_text_field($_POST['training_type']) : '';
+    $borough       = isset($_POST['borough']) ? sanitize_text_field($_POST['borough']) : '';
+    $serviceType   = isset($_POST['serviceType']) ? sanitize_text_field($_POST['serviceType']) : '';
 
-    // Map training type to database type values
-    if ($training_type == 'Live') {
-        $type_condition = "AND (p.type = '' OR p.type IS NULL)";
-    } elseif ($training_type == 'On-demand' || $training_type == 'recording') {
-        $type_condition = "AND p.type = 'recording'";
+    if (empty($org) || empty($period) || empty($training_type)) {
+        wp_send_json_error('Missing required parameters.');
+        return;
+    }
+
+    $org_uc = strtoupper($org);
+    $payments_table = $wpdb->prefix . 'ccpa_payments';
+
+    // -----------------------------------
+    // Resolve training type
+    // -----------------------------------
+    if ($training_type === 'Live') {
+        $type_condition = " AND (p.type = '' OR p.type IS NULL) ";
+    } elseif ($training_type === 'On-demand' || $training_type === 'recording') {
+        $type_condition = " AND p.type = 'recording' ";
     } else {
-        // If type doesn't match known values, return error
         wp_send_json_error('Invalid training type.');
         return;
     }
 
-    // $pmt_type = $training_type == 'Live' ? '' : 'recording';
-
-    $org_uc = strtoupper($org);
-    $payments_table = $wpdb->prefix.'ccpa_payments';
-
-	// Resolve period to actual dates
+    // -----------------------------------
+    // Resolve period
+    // -----------------------------------
     switch ($period) {
+
         case 'this_month':
             $month_start = date('Y-m-01 00:00:00');
-            $month_end = date('Y-m-t 23:59:59');
+            $month_end   = date('Y-m-t 23:59:59');
             break;
+
         case 'last_month':
             $month_start = date('Y-m-01 00:00:00', strtotime('first day of last month'));
-            $month_end = date('Y-m-t 23:59:59', strtotime('last day of last month'));
+            $month_end   = date('Y-m-t 23:59:59', strtotime('last day of last month'));
             break;
+
         default:
-            // Expecting a format like "2025-04"
             if (preg_match('/^\d{4}-\d{2}$/', $period)) {
                 $month_start = $period . '-01 00:00:00';
-                $month_end = date('Y-m-t 23:59:59', strtotime($month_start));
+                $month_end   = date('Y-m-t 23:59:59', strtotime($month_start));
             } else {
                 wp_send_json_error('Invalid period format.');
                 return;
             }
     }
 
-	// Modified to include cancelled and linked registrations
-	$query = "
-	    SELECT 
-		    u.ID as user_id,
-	        u.user_email,
-	        p_posts.ID as training_id,
-	        p_posts.post_title AS training_title,
-	        DATE_FORMAT(p.last_update, '%%d/%%m/%%Y') as reg_date,
-	        p.disc_amount as value,
-	        p.status as payment_status
-	    FROM $payments_table p
-	    JOIN {$wpdb->users} u ON u.ID = p.reg_userid
-	    JOIN {$wpdb->posts} p_posts ON p_posts.ID = p.workshop_id
-	    WHERE p.disc_code = %s
-	      AND p.last_update BETWEEN %s AND %s
-	      AND p_posts.post_status = 'publish'
-	      AND (p.status = 'Payment not needed' OR p.status = 'Cancelled' OR p.status LIKE 'Linked to #%%')
-	      AND (p.type = 'recording' OR p.type = '' OR p.type IS NULL)
-	      $type_condition
-	    ORDER BY u.user_email ASC
-	";
+    // -----------------------------------
+    // Base Query
+    // -----------------------------------
+    $query = "
+        SELECT 
+            u.ID as user_id,
+            u.user_email,
+            um_service.meta_value as nlft_service_type,
+            um_borough.meta_value as nlft_borough,
+            p_posts.ID as training_id,
+            p_posts.post_title AS training_title,
+            DATE_FORMAT(p.last_update, '%%d/%%m/%%Y') as reg_date,
+            p.disc_amount as value,
+            p.status as payment_status
 
-	// ccpa_write_log('function ajax_get_monthly_type_breakdown');
-	// ccpa_write_log($wpdb->prepare($query, $org_uc, $pmt_type, $month_start, $month_end));
+        FROM $payments_table p
 
-    $results = $wpdb->get_results(
-        $wpdb->prepare($query, $org_uc, $month_start, $month_end),
-        ARRAY_A
-    );
+        JOIN {$wpdb->users} u 
+            ON u.ID = p.reg_userid
 
-    // Format results and apply strikethrough for cancelled
-    foreach ($results as &$row) {
-        // Get attendance icon
-        $icon = dashboard_attendance_icon( $row['user_id'], $row['training_id'] );
-        
-        // Check if cancelled and apply strikethrough
-        if ($row['payment_status'] == 'Cancelled') {
-            $row['training_title'] = '<span style="text-decoration: line-through;">' . $icon . ' ' . esc_html($row['training_title']) . '</span>';
-            $row['reg_date'] = '<span style="text-decoration: line-through;">' . $row['reg_date'] . '</span>';
-            $row['value'] = '<span style="text-decoration: line-through;">£' . number_format($row['value'], 2) . '</span>';
+        LEFT JOIN {$wpdb->usermeta} um_service 
+            ON um_service.user_id = u.ID 
+            AND um_service.meta_key = 'nlft_service_type'
+
+        LEFT JOIN {$wpdb->usermeta} um_borough 
+            ON um_borough.user_id = u.ID 
+            AND um_borough.meta_key = 'nlft_borough'
+
+        JOIN {$wpdb->posts} p_posts 
+            ON p_posts.ID = p.workshop_id
+
+        WHERE p.disc_code = %s
+          AND p.last_update BETWEEN %s AND %s
+          AND p_posts.post_status = 'publish'
+          AND (
+                p.status = 'Payment not needed'
+             OR p.status = 'Cancelled'
+             OR p.status LIKE 'Linked to #%%'
+          )
+          $type_condition
+    ";
+
+    $params = [$org_uc, $month_start, $month_end];
+
+    // -----------------------------------
+    // Optional Filters
+    // -----------------------------------
+    if (!empty($serviceType)) {
+        $query .= " AND um_service.meta_value = %s";
+        $params[] = $serviceType;
+    }
+
+    if (!empty($borough)) {
+        $query .= " AND um_borough.meta_value = %s";
+        $params[] = $borough;
+    }
+
+    $query .= " ORDER BY u.user_email ASC";
+
+    $prepared_query = $wpdb->prepare($query, $params);
+    $results = $wpdb->get_results($prepared_query);
+
+    if (empty($results)) {
+        wp_send_json_success([]);
+        return;
+    }
+
+    // -----------------------------------
+    // Format Results
+    // -----------------------------------
+    foreach ($results as $row) {
+
+        $icon = function_exists('dashboard_attendance_icon')
+            ? dashboard_attendance_icon($row->user_id, $row->training_id)
+            : '';
+
+        $service_type = esc_html($row->nlft_service_type ?? '');
+        $borough_val  = esc_html($row->nlft_borough ?? '');
+        $title        = esc_html($row->training_title);
+        $value        = number_format((float)$row->value, 2);
+
+        if ($row->payment_status === 'Cancelled') {
+
+            $row->training_title = '<span style="text-decoration: line-through;">' .
+                $icon . ' ' . $title . '</span>';
+
+            $row->nlft_service_type = '<span style="text-decoration: line-through;">' .
+                $service_type . '</span>';
+
+            $row->nlft_borough = '<span style="text-decoration: line-through;">' .
+                $borough_val . '</span>';
+
+            $row->reg_date = '<span style="text-decoration: line-through;">' .
+                $row->reg_date . '</span>';
+
+            $row->value = '<span style="text-decoration: line-through;">£' .
+                $value . '</span>';
+
         } else {
-            $row['training_title'] = $icon . ' ' . esc_html($row['training_title']);
-            $row['value'] = '£' . number_format($row['value'], 2);
+
+            $row->training_title = $icon . ' ' . $title;
+            $row->nlft_service_type = $service_type;
+            $row->nlft_borough = $borough_val;
+            $row->value = '£' . $value;
         }
-        
-        // Add linked indicator if it's part of a series/group
-        if (strpos($row['payment_status'], 'Linked to #') === 0) {
-            $row['training_title'] .= ' <small class="text-muted">(Series/Group)</small>';
+
+        // Series indicator
+        if (strpos($row->payment_status, 'Linked to #') === 0) {
+            $row->training_title .= ' <small class="text-muted">(Series/Group)</small>';
         }
     }
 
     wp_send_json_success($results);
 }
 
+function ajax_get_monthly_type_breakdown_bkpold() {
+
+    global $wpdb;
+
+    // -----------------------------------
+    // Sanitize inputs
+    // -----------------------------------
+    $org           = isset($_POST['org']) ? sanitize_text_field($_POST['org']) : '';
+    $period        = isset($_POST['period']) ? sanitize_text_field($_POST['period']) : '';
+    $training_type = isset($_POST['training_type']) ? sanitize_text_field($_POST['training_type']) : '';
+    $borough = isset($_POST['borough']) ? sanitize_text_field($_POST['borough']) : '';
+    $serviceType = isset($_POST['serviceType']) ? sanitize_text_field($_POST['serviceType']) : '';
+
+
+    if (empty($org) || empty($period) || empty($training_type)) {
+        wp_send_json_error('Missing required parameters.');
+        return;
+    }
+
+    $org_uc = strtoupper($org);
+    $payments_table = $wpdb->prefix . 'ccpa_payments';
+
+    // -----------------------------------
+    // Resolve training type
+    // -----------------------------------
+    if ($training_type === 'Live') {
+        $type_condition = " AND (p.type = '' OR p.type IS NULL) ";
+    } elseif ($training_type === 'On-demand' || $training_type === 'recording') {
+        $type_condition = " AND p.type = 'recording' ";
+    } else {
+        wp_send_json_error('Invalid training type.');
+        return;
+    }
+
+    // -----------------------------------
+    // Resolve period into date range
+    // -----------------------------------
+    switch ($period) {
+
+        case 'this_month':
+            $month_start = date('Y-m-01 00:00:00');
+            $month_end   = date('Y-m-t 23:59:59');
+            break;
+
+        case 'last_month':
+            $month_start = date('Y-m-01 00:00:00', strtotime('first day of last month'));
+            $month_end   = date('Y-m-t 23:59:59', strtotime('last day of last month'));
+            break;
+
+        default:
+            // Format expected: YYYY-MM
+            if (preg_match('/^\d{4}-\d{2}$/', $period)) {
+                $month_start = $period . '-01 00:00:00';
+                $month_end   = date('Y-m-t 23:59:59', strtotime($month_start));
+            } else {
+                wp_send_json_error('Invalid period format.');
+                return;
+            }
+    }
+
+    // -----------------------------------
+    // Main Query
+    // -----------------------------------
+    $query = "
+        SELECT 
+            u.ID as user_id,
+            u.user_email,
+            um_service.meta_value as nlft_service_type,
+            um_borough.meta_value as nlft_borough,
+            p_posts.ID as training_id,
+            p_posts.post_title AS training_title,
+            DATE_FORMAT(p.last_update, '%%d/%%m/%%Y') as reg_date,
+            p.disc_amount as value,
+            p.status as payment_status
+
+        FROM $payments_table p
+
+        JOIN {$wpdb->users} u 
+            ON u.ID = p.reg_userid
+
+        LEFT JOIN {$wpdb->usermeta} um_service 
+            ON um_service.user_id = u.ID 
+            AND um_service.meta_key = 'nlft_service_type'
+
+        LEFT JOIN {$wpdb->usermeta} um_borough 
+            ON um_borough.user_id = u.ID 
+            AND um_borough.meta_key = 'nlft_borough'
+
+        JOIN {$wpdb->posts} p_posts 
+            ON p_posts.ID = p.workshop_id
+
+        WHERE p.disc_code = %s
+          AND p.last_update BETWEEN %s AND %s
+          AND p_posts.post_status = 'publish'
+          AND (
+                p.status = 'Payment not needed'
+                OR p.status = 'Cancelled'
+                OR p.status LIKE 'Linked to #%%'
+              )
+          $type_condition
+
+        ORDER BY u.user_email ASC
+    ";
+
+    $prepared_query = $wpdb->prepare(
+        $query,
+        $org_uc,
+        $month_start,
+        $month_end
+    );
+
+    $results = $wpdb->get_results($prepared_query);
+
+    if (empty($results)) {
+        wp_send_json_success([]);
+        return;
+    }
+
+    // -----------------------------------
+    // Format Results
+    // -----------------------------------
+    foreach ($results as $row) {
+
+        $icon = function_exists('dashboard_attendance_icon')
+            ? dashboard_attendance_icon($row->user_id, $row->training_id)
+            : '';
+
+        $service_type = esc_html($row->nlft_service_type ?? '');
+        $borough      = esc_html($row->nlft_borough ?? '');
+        $title        = esc_html($row->training_title);
+        $value        = number_format((float)$row->value, 2);
+
+        if ($row->payment_status === 'Cancelled') {
+
+            $row->training_title = '<span style="text-decoration: line-through;">' . 
+                $icon . ' ' . $title . '</span>';
+
+            $row->nlft_service_type = '<span style="text-decoration: line-through;">' . 
+                $service_type . '</span>';
+
+            $row->nlft_borough = '<span style="text-decoration: line-through;">' . 
+                $borough . '</span>';
+
+            $row->reg_date = '<span style="text-decoration: line-through;">' . 
+                $row->reg_date . '</span>';
+
+            $row->value = '<span style="text-decoration: line-through;">£' . 
+                $value . '</span>';
+
+        } else {
+
+            $row->training_title = $icon . ' ' . $title;
+            $row->nlft_service_type = $service_type;
+            $row->nlft_borough = $borough;
+            $row->value = '£' . $value;
+        }
+
+        // Add series indicator
+        if (strpos($row->payment_status, 'Linked to #') === 0) {
+            $row->training_title .= ' <small class="text-muted">(Series/Group)</small>';
+        }
+    }
+
+    wp_send_json_success($results);
+}
 // get user stats
 add_action('wp_ajax_get_user_stats', 'ajax_get_user_stats');
 function ajax_get_user_stats() {
@@ -539,7 +870,48 @@ function dashboard_attendance_icon( $user_id, $training_id ){
 }
 
 // Get registration stats for a specific month
+
 function dashboard_get_month_stats($org, $year, $month) {
+
+    global $wpdb;
+
+    $payments_table = $wpdb->prefix . 'ccpa_payments';
+    $org_uc = strtoupper($org);
+
+    // Month boundaries
+    $month_start = sprintf('%04d-%02d-01 00:00:00', $year, $month);
+    $month_end   = date('Y-m-t 23:59:59', strtotime($month_start));
+
+    $query = "
+        SELECT
+            COUNT(DISTINCT p.ID) AS count,
+            SUM(p.disc_amount) AS amount
+        FROM $payments_table p
+        WHERE p.last_update BETWEEN %s AND %s
+            AND p.disc_code = %s
+            AND (
+                p.status = 'Payment not needed'
+                OR p.status = 'Cancelled'
+                OR p.status LIKE 'Linked to #%%'
+            )
+            AND (
+                p.type = 'recording'
+                OR p.type = ''
+                OR p.type IS NULL
+            )
+    ";
+
+    $result = $wpdb->get_row(
+        $wpdb->prepare($query, $month_start, $month_end, $org_uc),
+        ARRAY_A
+    );
+
+    return [
+        'count'  => !empty($result['count']) ? (int) $result['count'] : 0,
+        'amount' => !empty($result['amount']) ? (float) $result['amount'] : 0
+    ];
+}
+function dashboard_get_month_stats_oldBkp($org, $year, $month) {
     global $wpdb;
     $payments_table = $wpdb->prefix . 'ccpa_payments';
     $org_uc = strtoupper($org);
