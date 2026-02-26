@@ -106,10 +106,11 @@ function ajax_get_monthly_breakdown() {
 
 	global $wpdb;
 
-	$org        = sanitize_text_field($_POST['org']);
-	$period     = sanitize_text_field($_POST['period']);
+	$org         = sanitize_text_field($_POST['org']);
+	$period      = sanitize_text_field($_POST['period']);
 	$serviceType = sanitize_text_field($_POST['serviceType'] ?? '');
 	$borough     = sanitize_text_field($_POST['borough'] ?? '');
+	$role        = sanitize_text_field($_POST['role'] ?? '');
 
 	$org_uc = strtoupper($org);
 	$payments_table = $wpdb->prefix . 'ccpa_payments';
@@ -135,13 +136,48 @@ function ajax_get_monthly_breakdown() {
 	}
 
 	// =========================
-	// Base Query (with joins)
+	// Dynamic Joins
+	// =========================
+
+	$join_service = '';
+	$join_borough = '';
+	$join_role    = '';
+
+	if (!empty($serviceType)) {
+		$join_service = "
+			INNER JOIN {$wpdb->usermeta} um_service
+				ON um_service.user_id = u.ID
+				AND um_service.meta_key = 'nlft_service_type'
+				AND um_service.meta_value = %s
+		";
+	}
+
+	if (!empty($borough)) {
+		$join_borough = "
+			INNER JOIN {$wpdb->usermeta} um_borough
+				ON um_borough.user_id = u.ID
+				AND um_borough.meta_key = 'nlft_borough'
+				AND um_borough.meta_value = %s
+		";
+	}
+
+	if (!empty($role)) {
+		$join_role = "
+			INNER JOIN {$wpdb->usermeta} um_role
+				ON um_role.user_id = u.ID
+				AND um_role.meta_key = 'job'
+				AND um_role.meta_value = %s
+		";
+	}
+
+	// =========================
+	// Base Query
 	// =========================
 
 	$query = "
 		SELECT 
 			p.type,
-			COUNT(*) as cnt, 
+			COUNT(DISTINCT p.ID) as cnt,
 			SUM(p.disc_amount) as amt
 
 		FROM $payments_table p
@@ -149,13 +185,9 @@ function ajax_get_monthly_breakdown() {
 		JOIN {$wpdb->users} u 
 			ON u.ID = p.reg_userid
 
-		LEFT JOIN {$wpdb->usermeta} um_service 
-			ON um_service.user_id = u.ID 
-			AND um_service.meta_key = 'nlft_service_type'
-
-		LEFT JOIN {$wpdb->usermeta} um_borough 
-			ON um_borough.user_id = u.ID 
-			AND um_borough.meta_key = 'nlft_borough'
+		$join_service
+		$join_borough
+		$join_role
 
 		WHERE p.last_update BETWEEN %s AND %s
 		  AND p.disc_code = %s
@@ -165,25 +197,31 @@ function ajax_get_monthly_breakdown() {
 		     OR p.status LIKE 'Linked to #%%'
 		  )
 		  AND (p.type = 'recording' OR p.type = '' OR p.type IS NULL)
+
+		GROUP BY p.type
 	";
-
-	$params = [$start, $end, $org_uc];
-
+//echo $query;
 	// =========================
-	// Optional Filters
+	// Params (ORDER MATTERS)
 	// =========================
+
+	$params = [];
 
 	if (!empty($serviceType)) {
-		$query .= " AND um_service.meta_value = %s";
 		$params[] = $serviceType;
 	}
 
 	if (!empty($borough)) {
-		$query .= " AND um_borough.meta_value = %s";
 		$params[] = $borough;
 	}
 
-	$query .= " GROUP BY p.type";
+	if (!empty($role)) {
+		$params[] = $role;
+	}
+
+	$params[] = $start;
+	$params[] = $end;
+	$params[] = $org_uc;
 
 	// =========================
 	// Execute
@@ -196,7 +234,6 @@ function ajax_get_monthly_breakdown() {
 
 	wp_send_json_success($results);
 }
-
 /* function ajax_get_monthly_breakdown() {
 	global $wpdb;
 
@@ -247,7 +284,6 @@ function ajax_get_monthly_breakdown() {
  */
 // monthly type user reg details
 add_action('wp_ajax_get_monthly_type_breakdown', 'ajax_get_monthly_type_breakdown');
-
 function ajax_get_monthly_type_breakdown() {
 
     global $wpdb;
@@ -260,6 +296,7 @@ function ajax_get_monthly_type_breakdown() {
     $training_type = isset($_POST['training_type']) ? sanitize_text_field($_POST['training_type']) : '';
     $borough       = isset($_POST['borough']) ? sanitize_text_field($_POST['borough']) : '';
     $serviceType   = isset($_POST['serviceType']) ? sanitize_text_field($_POST['serviceType']) : '';
+    $role          = isset($_POST['role']) ? sanitize_text_field($_POST['role']) : '';
 
     if (empty($org) || empty($period) || empty($training_type)) {
         wp_send_json_error('Missing required parameters.');
@@ -307,7 +344,7 @@ function ajax_get_monthly_type_breakdown() {
     }
 
     // -----------------------------------
-    // Base Query
+    // Base Query (LEFT JOIN for display)
     // -----------------------------------
     $query = "
         SELECT 
@@ -326,12 +363,12 @@ function ajax_get_monthly_type_breakdown() {
         JOIN {$wpdb->users} u 
             ON u.ID = p.reg_userid
 
-        LEFT JOIN {$wpdb->usermeta} um_service 
-            ON um_service.user_id = u.ID 
+        LEFT JOIN {$wpdb->usermeta} um_service
+            ON um_service.user_id = u.ID
             AND um_service.meta_key = 'nlft_service_type'
 
-        LEFT JOIN {$wpdb->usermeta} um_borough 
-            ON um_borough.user_id = u.ID 
+        LEFT JOIN {$wpdb->usermeta} um_borough
+            ON um_borough.user_id = u.ID
             AND um_borough.meta_key = 'nlft_borough'
 
         JOIN {$wpdb->posts} p_posts 
@@ -348,23 +385,60 @@ function ajax_get_monthly_type_breakdown() {
           $type_condition
     ";
 
-    $params = [$org_uc, $month_start, $month_end];
+    // -----------------------------------
+    // Params (ORDER MATTERS)
+    // -----------------------------------
+    $params = [
+        $org_uc,
+        $month_start,
+        $month_end
+    ];
 
     // -----------------------------------
-    // Optional Filters
+    // Optional Filters (SAFE EXISTS)
     // -----------------------------------
+
     if (!empty($serviceType)) {
-        $query .= " AND um_service.meta_value = %s";
+        $query .= "
+            AND EXISTS (
+                SELECT 1 FROM {$wpdb->usermeta} um_service_f
+                WHERE um_service_f.user_id = u.ID
+                  AND um_service_f.meta_key = 'nlft_service_type'
+                  AND um_service_f.meta_value = %s
+            )
+        ";
         $params[] = $serviceType;
     }
 
     if (!empty($borough)) {
-        $query .= " AND um_borough.meta_value = %s";
+        $query .= "
+            AND EXISTS (
+                SELECT 1 FROM {$wpdb->usermeta} um_borough_f
+                WHERE um_borough_f.user_id = u.ID
+                  AND um_borough_f.meta_key = 'nlft_borough'
+                  AND um_borough_f.meta_value = %s
+            )
+        ";
         $params[] = $borough;
+    }
+
+    if (!empty($role)) {
+        $query .= "
+            AND EXISTS (
+                SELECT 1 FROM {$wpdb->usermeta} um_role
+                WHERE um_role.user_id = u.ID
+                  AND um_role.meta_key = 'job'
+                  AND um_role.meta_value = %s
+            )
+        ";
+        $params[] = $role;
     }
 
     $query .= " ORDER BY u.user_email ASC";
 
+    // -----------------------------------
+    // Execute
+    // -----------------------------------
     $prepared_query = $wpdb->prepare($query, $params);
     $results = $wpdb->get_results($prepared_query);
 
@@ -412,7 +486,6 @@ function ajax_get_monthly_type_breakdown() {
             $row->value = '£' . $value;
         }
 
-        // Series indicator
         if (strpos($row->payment_status, 'Linked to #') === 0) {
             $row->training_title .= ' <small class="text-muted">(Series/Group)</small>';
         }
@@ -420,7 +493,6 @@ function ajax_get_monthly_type_breakdown() {
 
     wp_send_json_success($results);
 }
-
 function ajax_get_monthly_type_breakdown_bkpold() {
 
     global $wpdb;

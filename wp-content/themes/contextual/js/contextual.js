@@ -2165,6 +2165,8 @@ jQuery(document).ready(function($) {
         const org = $(this).data('org');
         const serviceType = $(this).data('service-type');
         const borough = $(this).data('borough');
+        const role = $(this).data('role');
+
         const detailsRow = $('#details-' + period);
         const content = $('#details-content-' + period);
 
@@ -2179,7 +2181,8 @@ jQuery(document).ready(function($) {
                 org: org,
                 period: period,
                 serviceType : serviceType,
-                borough : borough
+                borough : borough,
+                role : role
             }, function(response) {
                 if (response.success) {
                     const data = response.data;
@@ -2212,7 +2215,7 @@ jQuery(document).ready(function($) {
                                         <div class="col-4 text-end">${row.cnt}</div>
                                         <div class="col-3 text-end">&pound;${parseFloat(row.amt).toFixed(2)}</div>
                                         <div class="col-1 text-end">
-                                            <a href="#" class="show-type-details small" data-org="${org}" data-period="${period}" data-type="${trainingType}" data-service-type="${serviceType}" data-borough="${borough}">
+                                            <a href="#" class="show-type-details small" data-org="${org}" data-period="${period}" data-type="${trainingType}" data-service-type="${serviceType}" data-borough="${borough}" data-role="${role}">
                                                 <i class="fa-regular fa-square-plus"></i>
                                             </a>
                                         </div>
@@ -2247,6 +2250,7 @@ jQuery(document).ready(function($) {
         const training_type = $link.data('type');
         const borough = $link.data('borough');
         const serviceType = $link.data('service-type');
+        const role = $link.data('role');
 
         if (target.is(':visible')) {
             target.slideUp();
@@ -2261,7 +2265,9 @@ jQuery(document).ready(function($) {
                 period: period,
                 training_type: training_type,
                 borough : borough,
-                serviceType : serviceType
+                serviceType : serviceType,
+                role : role
+
             }, function(response) {
                 if (response.success && response.data.length) {
                     let html = `
