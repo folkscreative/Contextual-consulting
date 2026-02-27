@@ -9,6 +9,7 @@
 // -----------------------------------------------------------------------------
 // CONFIG
 // -----------------------------------------------------------------------------
+
 function cc_nlft_stats_start_date(){
     return '2026-01-01 00:00:00';
 }
@@ -43,9 +44,9 @@ function nlft_stats_report(){
 
     $users = cc_nlft_get_users();
 
-    $start = cc_nlft_stats_start_date();
+/*     $start = cc_nlft_stats_start_date();
     $end   = cc_nlft_stats_end_date();
-
+ */
     $now = time();
     $today = date('Y-m-d H:i:s');
 
@@ -69,7 +70,7 @@ function nlft_stats_report(){
     $sum_r_value = 0.0;
     ?>
     <div class="wrap">
-        <h2>NLFT Stats (<?php echo date('d/m/Y', strtotime($start)); ?> – <?php echo date('d/m/Y', strtotime($end)); ?>)</h2>
+        <h2>NLFT Stats</h2>
          
 		<div class="text-end">
 			<a href="javascript:void(0);" id="nlft-export-req" class="button button-secondary">Generate CSV export</a><br>
@@ -82,6 +83,11 @@ function nlft_stats_report(){
                         <tr>
                             <th>Registered</th>
                             <th>Email</th>
+							 <th>Borough</th>
+                        <th>Service Type</th>
+                        <th>Team</th>
+                        <th>Profession</th>
+
                             <th class="cnwl-pmt-col" colspan="2">Pmt ID</th>
                             <th>Workshops</th>
                             <th>Reg. Price</th>
@@ -99,6 +105,10 @@ function nlft_stats_report(){
                     foreach ($users as $user) {
 
                         $metas = get_user_meta($user->ID);
+						     $borough      = get_user_meta($user->ID, 'nlft_borough', true);
+        $service_type = get_user_meta($user->ID, 'nlft_service_type', true);
+        $team         = get_user_meta($user->ID, 'nlft_team', true);
+        $profession   = get_user_meta($user->ID, 'job', true);
 
                         $reg_recs = array();
                         $viewed_recs = array();
@@ -117,10 +127,6 @@ function nlft_stats_report(){
                                 $rec_data = maybe_unserialize($value[0]);
                                 $rec_data = sanitise_recording_meta( $rec_data, $user->ID, $rec_id );
 
-                                if(
-                                    $rec_data['access_time'] < $start ||
-                                    $rec_data['access_time'] > $end
-                                ) continue;
 
                                 $payment_id = 'unk';
                                 if(isset($rec_data['payment_id'])){
@@ -156,10 +162,6 @@ function nlft_stats_report(){
 
                             $payment_data = cc_paymentdb_get_payment($wkshop_user['payment_id']);
 
-                            if(
-                                $payment_data['last_update'] < $start ||
-                                $payment_data['last_update'] > $end
-                            ) continue;
 
                             $pmt_html = $wkshop_user['payment_id'];
                             $reg_html = date('j/m/Y', strtotime($payment_data['last_update']));
@@ -283,10 +285,6 @@ function nlft_stats_report(){
 
                                 $payment_data = cc_paymentdb_get_payment($rec_ids['pmt_id']);
 
-                                if(
-                                    $payment_data['last_update'] < $start ||
-                                    $payment_data['last_update'] > $end
-                                ) continue;
 
                                 $reg_html = date('j/m/Y', strtotime($payment_data['last_update']));
 
@@ -348,10 +346,15 @@ function nlft_stats_report(){
                                 echo '<tr>';
 
                                 if($i == 0){
-                                    echo '<td valign="top">'.date('d/m/Y', strtotime($user->user_registered)).'</td>';
-                                    echo '<td valign="top">'.$user->user_email.'</td>';
+									echo '<td valign="top">'.date('d/m/Y', strtotime($user->user_registered)).'</td>';
+									echo '<td valign="top">'.$user->user_email.'</td>';
+									echo '<td>'.esc_html($borough).'</td>';
+									echo '<td>'.esc_html($service_type).'</td>';
+									echo '<td>'.esc_html($team).'</td>';
+									echo '<td>'.esc_html($profession).'</td>';
+
                                 }else{
-                                    echo '<td colspan="2">&nbsp;</td>';
+                                    echo '<td colspan="6">&nbsp;</td>';
                                 }
 
                                 if( isset( $workshop_rows[$i] ) ){
@@ -481,7 +484,7 @@ function cc_nlft_generate_csv(){
     $file = fopen($file_url, 'w');
     //add BOM to fix UTF-8 in Excel
 	fputs( $file, chr(0xEF) . chr(0xBB) . chr(0xBF) );
-    $fields = array( 'Registered', 'Email', 'Pmt ID', '', 'Workshops', 'Reg. Price', 'Attend', 'Rec', 'Pmt ID', '', 'Recordings', 'Reg. Price', 'View' );
+    $fields = array( 'Registered', 'Email', 'Borough','Service Type','Team','Profession','Pmt ID', '', 'Workshops', 'Reg. Price', 'Attend', 'Rec', 'Pmt ID', '', 'Recordings', 'Reg. Price', 'View' );
     fputcsv($file, $fields);
 
     $users = cc_nlft_get_users();
@@ -511,6 +514,12 @@ function cc_nlft_generate_csv(){
 	foreach ($users as $user){
 		$metas = get_user_meta($user->ID); // gets everything!
 		// $viewed_wkshops = array();
+
+		
+        $borough      = get_user_meta($user->ID, 'nlft_borough', true);
+        $service_type = get_user_meta($user->ID, 'nlft_service_type', true);
+        $team         = get_user_meta($user->ID, 'nlft_team', true);
+        $profession   = get_user_meta($user->ID, 'job', true);
 		$reg_recs = array();
 		$viewed_recs = array();
 		$closed_recs = array();
@@ -741,13 +750,19 @@ function cc_nlft_generate_csv(){
 		if($user_rows > 0){
 			for ($i=0; $i < $user_rows; $i++) {
 				$row = array();
+				
 				if($i == 0){
-					$row[] = date('d/m/Y', strtotime($user->user_registered));
-					$row[] = $user->user_email;
-				}else{
-					$row[] = '';
-					$row[] = '';
-				}
+    $row = array(
+        date('d/m/Y', strtotime($user->user_registered)),
+        $user->user_email,
+        $borough ?: '',
+        $service_type ?: '',
+        $team ?: '',
+        $profession ?: '',
+    );
+}else{
+    $row = array_fill(0, 6, '');
+}
 				if( isset( $workshop_rows[$i] ) ){
 					if( $workshop_rows[$i][0] === true ){
 						$td_class = 'cancelled';
