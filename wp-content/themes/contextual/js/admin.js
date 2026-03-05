@@ -1112,6 +1112,26 @@ jQuery(document).ready(function( $ ) {
             }
         });
     });
+    // generate the NLFT export file
+    $(document).on('click', '#nlft-export-req', function(){
+        $('#nlft-export-msg').html('<i class="fa-solid fa-sync fa-spin"></i> Assembling the data ...')
+        $.ajax({
+            type: "POST",
+            url: ContextualData.rpmAjax.ajaxurl,
+            data: { 
+                action : "nlft_generate_csv"
+            },
+            dataType : "json",
+            cache: false,
+            timeout: 20000,
+            success: function(response){
+                $('#nlft-export-msg').html(response.msg);
+            },
+            error: function(jqXhr, textStatus, errorMessage){
+                $('#nlft-export-msg').html('Problem connecting to server ... please try again');
+            }
+        });
+    });
 
     // resource hub links
     function addNewLinkField() {
