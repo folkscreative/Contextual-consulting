@@ -57,7 +57,11 @@ function cnwl_stats_report(){
 						<tr>
 							<th>Registered</th>
 							<th>Email</th>
-							<th class="cnwl-pmt-col" colspan="2">Pmt ID</th>
+							<th>Borough</th>
+							<th>Service Type</th>
+							<th>Team</th>
+							<th>Profession</th>
+                             <th class="cnwl-pmt-col" colspan="2">Pmt ID</th>
 							<th>Workshops</th>
 							<th>Reg. Price</th>
 							<th>Attend</th>
@@ -71,7 +75,20 @@ function cnwl_stats_report(){
 					<tbody>
 						<?php
 						foreach ($users as $user) {
-							$metas = get_user_meta($user->ID); // gets everything!
+
+					
+    $borough      = get_user_meta($user->ID, 'nlft_borough', true);
+    $service_type = get_user_meta($user->ID, 'nlft_service_type', true);
+    $team         = get_user_meta($user->ID, 'nlft_team', true);
+    $profession   = get_user_meta($user->ID, 'job', true);
+							$metas = get_user_meta($user->ID);
+							
+							
+							/* echo "<pre>";
+							print_r($metas);
+							echo "</pre>";
+							 */
+							// gets everything!
 							// $wanted_wkshop_key = 'zoomed w:'.$wkshop_user['workshop_id'].' ';
 							// $str_len = strlen($wanted_wkshop_key);
 							// $viewed_wkshops = array();
@@ -310,10 +327,17 @@ function cnwl_stats_report(){
 								for ($i=0; $i < $user_rows; $i++) {
 									echo '<tr>';
 									if($i == 0){
-										echo '<td valign="top">'.date('d/m/Y', strtotime($user->user_registered)).'</td><td valign="top">'.$user->user_email.'</td>';
-									}else{
-										echo '<td colspan="2">&nbsp;</td>';
-									}
+    echo '<td valign="top">'.date('d/m/Y', strtotime($user->user_registered)).'</td>';
+    echo '<td valign="top">'.$user->user_email.'</td>';
+    echo '<td>'.esc_html($borough).'</td>';
+    echo '<td>'.esc_html($service_type).'</td>';
+    echo '<td>'.esc_html($team).'</td>';
+    echo '<td>'.esc_html($profession).'</td>';
+}else{
+    echo '<td colspan="6">&nbsp;</td>';
+}
+                                     
+
 									if( isset( $workshop_rows[$i] ) ){
 										if( $workshop_rows[$i][0] === true ){
 											$td_class = 'cancelled';
@@ -449,7 +473,7 @@ function cc_cnwl_generate_csv(){
     $file = fopen($file_url, 'w');
     //add BOM to fix UTF-8 in Excel
 	fputs( $file, chr(0xEF) . chr(0xBB) . chr(0xBF) );
-    $fields = array( 'Registered', 'Email', 'Pmt ID', '', 'Workshops', 'Reg. Price', 'Attend', 'Rec', 'Pmt ID', '', 'Recordings', 'Reg. Price', 'View' );
+    $fields = array( 'Registered', 'Email','Borough','Service Type','Team','Profession', 'Pmt ID', '', 'Workshops', 'Reg. Price', 'Attend', 'Rec', 'Pmt ID', '', 'Recordings', 'Reg. Price', 'View' );
     fputcsv($file, $fields);
 
     $users = cc_cnwl_get_users();
@@ -479,6 +503,10 @@ function cc_cnwl_generate_csv(){
 	foreach ($users as $user){
 		$metas = get_user_meta($user->ID); // gets everything!
 		// $viewed_wkshops = array();
+		    $borough      = get_user_meta($user->ID, 'nlft_borough', true);
+    $service_type = get_user_meta($user->ID, 'nlft_service_type', true);
+    $team         = get_user_meta($user->ID, 'nlft_team', true);
+    $profession   = get_user_meta($user->ID, 'job', true);
 		$reg_recs = array();
 		$viewed_recs = array();
 		$closed_recs = array();
@@ -709,13 +737,18 @@ function cc_cnwl_generate_csv(){
 		if($user_rows > 0){
 			for ($i=0; $i < $user_rows; $i++) {
 				$row = array();
-				if($i == 0){
-					$row[] = date('d/m/Y', strtotime($user->user_registered));
-					$row[] = $user->user_email;
-				}else{
-					$row[] = '';
-					$row[] = '';
-				}
+								if($i == 0){
+    $row = array(
+        date('d/m/Y', strtotime($user->user_registered)),
+        $user->user_email,
+        $borough ?: '',
+        $service_type ?: '',
+        $team ?: '',
+        $profession ?: '',
+    );
+}else{
+    $row = array_fill(0, 6, '');
+}
 				if( isset( $workshop_rows[$i] ) ){
 					if( $workshop_rows[$i][0] === true ){
 						$td_class = 'cancelled';

@@ -2163,11 +2163,15 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         const period = $(this).data('period');
         const org = $(this).data('org');
+        const serviceType = $(this).data('service-type');
+        const borough = $(this).data('borough');
+        const role = $(this).data('role');
+
         const detailsRow = $('#details-' + period);
         const content = $('#details-content-' + period);
 
         if (detailsRow.is(':visible')) {
-            detailsRow.slideUp();
+            detailsRow.slideUp(); 
             return;
         }
 
@@ -2175,7 +2179,10 @@ jQuery(document).ready(function($) {
             $.post(ccAjax.ajaxurl, {
                 action: 'get_monthly_breakdown',
                 org: org,
-                period: period
+                period: period,
+                serviceType : serviceType,
+                borough : borough,
+                role : role
             }, function(response) {
                 if (response.success) {
                     const data = response.data;
@@ -2208,7 +2215,7 @@ jQuery(document).ready(function($) {
                                         <div class="col-4 text-end">${row.cnt}</div>
                                         <div class="col-3 text-end">&pound;${parseFloat(row.amt).toFixed(2)}</div>
                                         <div class="col-1 text-end">
-                                            <a href="#" class="show-type-details small" data-org="${org}" data-period="${period}" data-type="${trainingType}">
+                                            <a href="#" class="show-type-details small" data-org="${org}" data-period="${period}" data-type="${trainingType}" data-service-type="${serviceType}" data-borough="${borough}" data-role="${role}">
                                                 <i class="fa-regular fa-square-plus"></i>
                                             </a>
                                         </div>
@@ -2241,6 +2248,9 @@ jQuery(document).ready(function($) {
         const period = $link.data('period');
         const org = $link.data('org');
         const training_type = $link.data('type');
+        const borough = $link.data('borough');
+        const serviceType = $link.data('service-type');
+        const role = $link.data('role');
 
         if (target.is(':visible')) {
             target.slideUp();
@@ -2253,13 +2263,19 @@ jQuery(document).ready(function($) {
                 action: 'get_monthly_type_breakdown',
                 org: org,
                 period: period,
-                training_type: training_type
+                training_type: training_type,
+                borough : borough,
+                serviceType : serviceType,
+                role : role
+
             }, function(response) {
                 if (response.success && response.data.length) {
                     let html = `
                         <div class="row mb-1 small pe-2">
-                            <div class="col-3"><strong>Email</strong></div>
-                            <div class="col-5"><strong>Training Title</strong></div>
+                            <div class="col-2"><strong>Email</strong></div>
+                            <div class="col-2"><strong>Training Title</strong></div>
+                            <div class="col-2"><strong>Service Type</strong></div>
+                            <div class="col-2"><strong>Borough</strong></div>
                             <div class="col-2"><strong>Date</strong></div>
                             <div class="col-2 text-end"><strong>Value</strong></div>
                         </div>`;
@@ -2268,9 +2284,12 @@ jQuery(document).ready(function($) {
                         // and adds (Series/Group) indicators, so we just output the HTML as-is
                         // Note: value already includes £ sign from PHP
                         html += `
-                            <div class="row mb-1 small pe-2">
-                                <div class="col-3">${item.user_email}</div>
-                                <div class="col-5">${item.training_title}</div>
+                            <div class="row mb-2 small pe-2">
+                                <div class="col-2 email-column" style=" word-break: break-word;
+    overflow-wrap: anywhere;">${item.user_email}</div>
+                                <div class="col-2">${item.training_title}</div>
+                                <div class="col-2">${item.nlft_service_type}</div>
+                                <div class="col-2">${item.nlft_borough}</div>
                                 <div class="col-2">${item.reg_date}</div>
                                 <div class="col-2 text-end">${item.value}</div>
                             </div>`;
