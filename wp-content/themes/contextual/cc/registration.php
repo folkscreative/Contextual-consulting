@@ -1242,7 +1242,12 @@ function cc_registration_reg_who_submit(){
 		        
 		        // Generate panels with updated info
 		        $response['append'] = cc_registration_more_info_panel( $user_id, $form_data )
-		                            . cc_registration_attend_next_panels( '', array(), array(), '3', $reg_type, $user_data );
+		        					/**
+		        					 * mod to ensure portal_user sent ...
+		        					 */
+		                            // . cc_registration_attend_next_panels( '', array(), array(), '3', $reg_type, $user_data );
+				                    . cc_registration_attend_next_panels( '', array(), $form_data, '3', $reg_type, $form_data );
+
 		        $response['actbtn'] = contextual_header_action_btn_logged_in();
 		        $response['html'] = cc_registration_who_panel( $next_state, '', array(), $user_data, $user_id, $reg_type, $reg_token );
 		        

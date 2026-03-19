@@ -978,10 +978,35 @@ function dashboard_get_month_stats($org, $year, $month) {
         ARRAY_A
     );
 
+    // Count outside-allowance (Add to Account) registrations separately
+    $oa_query = "
+        SELECT COUNT(DISTINCT p.ID) AS oa_count
+        FROM $payments_table p
+        WHERE p.last_update BETWEEN %s AND %s
+            AND p.disc_code = %s
+            AND p.pmt_method = 'add_to_account'
+            AND (
+                p.status = 'Payment not needed'
+                OR p.status = 'Cancelled'
+                OR p.status LIKE 'Linked to #%%'
+            )
+            AND (
+                p.type = 'recording'
+                OR p.type = ''
+                OR p.type IS NULL
+            )
+    ";
+    $oa_result = $wpdb->get_row(
+        $wpdb->prepare($oa_query, $month_start, $month_end, $org_uc),
+        ARRAY_A
+    );
+
     return [
-        'count'  => !empty($result['count']) ? (int) $result['count'] : 0,
-        'amount' => !empty($result['amount']) ? (float) $result['amount'] : 0
+        'count'             => !empty($result['count']) ? (int) $result['count'] : 0,
+        'amount'            => !empty($result['amount']) ? (float) $result['amount'] : 0,
+        'outside_allowance' => !empty($oa_result['oa_count']) ? (int) $oa_result['oa_count'] : 0,
     ];
+
 }
 function dashboard_get_month_stats_oldBkp($org, $year, $month) {
     global $wpdb;

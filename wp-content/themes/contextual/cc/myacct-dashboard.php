@@ -285,10 +285,11 @@ while ($start <= $end) {
     }
 
     $month_rows[$month_key] = [
-        'label'  => $month_label,
-        'count'  => $month_stats['count'],
-        'amount' => $month_stats['amount'],
-        'key'    => $start->format('Y-m')
+        'label'             => $month_label,
+        'count'             => $month_stats['count'],
+        'amount'            => $month_stats['amount'],
+        'outside_allowance' => $month_stats['outside_allowance'] ?? 0,
+        'key'               => $start->format('Y-m')
     ];
 
     $start->modify('+1 month');
@@ -296,6 +297,18 @@ while ($start <= $end) {
         $month_rows = array_reverse($month_rows, true);
 
         foreach ($month_rows as $month_data) {
+
+            $oa_line = '';
+            if ( $portal_user === 'cnwl' && $month_data['outside_allowance'] > 0 ) {
+                $oa_line = '
+                <div class="row py-1">
+                    <div class="col-4 ps-4 text-muted small">
+                        <i class="fa-solid fa-circle-info"></i> incl. outside allowance
+                    </div>
+                    <div class="col-4 text-end text-muted small">' . $month_data['outside_allowance'] . '</div>
+                    <div class="col-4"></div>
+                </div>';
+            }
 
             $html .= '
             <div class="row align-items-center border-bottom py-2">
@@ -313,6 +326,7 @@ while ($start <= $end) {
                     </a>
                 </div>
             </div>
+            ' . $oa_line . '
             <div class="row details-row" id="details-' . $month_data['key'] . '" style="display:none;">
                 <div class="col-12">
                     <div class="py-2 px-3 border-start border-2 border-primary" id="details-content-' . $month_data['key'] . '">
@@ -442,8 +456,38 @@ function dashboard_get_month_stats_filtered(
         ARRAY_A
     );
 
+    // Count outside-allowance (Add to Account) registrations separately
+    $oa_query = "
+        SELECT COUNT(DISTINCT p.ID) AS oa_count
+        FROM $payments_table p
+        JOIN {$wpdb->users} u ON u.ID = p.reg_userid
+        $join_service
+        $join_borough
+        $join_role
+        WHERE p.last_update BETWEEN %s AND %s
+            AND p.disc_code = %s
+            AND p.pmt_method = 'add_to_account'
+            AND (
+                p.status = 'Payment not needed'
+                OR p.status = 'Cancelled'
+                OR p.status LIKE 'Linked to #%%'
+            )
+            AND (
+                p.type = 'recording'
+                OR p.type = ''
+                OR p.type IS NULL
+            )
+    ";
+    $oa_params = $params;
+    $oa_result = $wpdb->get_row(
+        $wpdb->prepare($oa_query, $oa_params),
+        ARRAY_A
+    );
+
     return [
-        'count'  => !empty($result['count']) ? (int) $result['count'] : 0,
-        'amount' => !empty($result['amount']) ? (float) $result['amount'] : 0
+        'count'             => !empty($result['count']) ? (int) $result['count'] : 0,
+        'amount'            => !empty($result['amount']) ? (float) $result['amount'] : 0,
+        'outside_allowance' => !empty($oa_result['oa_count']) ? (int) $oa_result['oa_count'] : 0,
     ];
+
 }

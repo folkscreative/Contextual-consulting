@@ -116,6 +116,19 @@ function cc_training_access_render_metabox($post) {
     </style>
     
     <div class="training-access-rules">
+        <!-- CNWL Outside Allowance Switch -->
+        <?php $outside_allowance = get_post_meta( $training_id, '_cnwl_outside_allowance', true ); ?>
+        <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+            <label style="font-weight: 600; display: block; margin-bottom: 5px;">
+                <i class="fa-solid fa-building-nhs"></i> CNWL: Outside Allowance
+            </label>
+            <label style="font-weight: normal;">
+                <input type="checkbox" name="cnwl_outside_allowance" value="yes" <?php checked( $outside_allowance, 'yes' ); ?>>
+                This training is outside the CNWL registration allowance
+            </label>
+            <p class="description" style="margin-top: 5px;">When enabled, CNWL portal users will see an "Add to Account" button for this training, and registrations will not count towards their contracted allowance.</p>
+        </div>
+
         <!-- Section 1: Grants access TO -->
         <div class="section-title">
             <i class="fa-solid fa-arrow-right"></i> Grants "Add to Account" access to:
@@ -545,3 +558,42 @@ function cc_training_access_prioritize_title_search($search, $query) {
     
     return $search;
 }
+
+// =================================================================
+// SAVE: CNWL Outside Allowance checkbox
+// =================================================================
+
+add_action( 'save_post', 'cc_training_access_save_metabox' );
+function cc_training_access_save_metabox( $post_id ) {
+
+    // Verify nonce
+    if ( ! isset( $_POST['cc_training_access_nonce'] ) ) {
+        return;
+    }
+    if ( ! wp_verify_nonce( $_POST['cc_training_access_nonce'], 'cc_training_access_save' ) ) {
+        return;
+    }
+
+    // Don't save on autosave
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+
+    // Check permissions
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+
+    // Only applies to course, workshop, series
+    if ( ! in_array( get_post_type( $post_id ), array( 'course', 'workshop', 'series' ) ) ) {
+        return;
+    }
+
+    // Save the outside allowance checkbox
+    if ( isset( $_POST['cnwl_outside_allowance'] ) && $_POST['cnwl_outside_allowance'] === 'yes' ) {
+        update_post_meta( $post_id, '_cnwl_outside_allowance', 'yes' );
+    } else {
+        delete_post_meta( $post_id, '_cnwl_outside_allowance' );
+    }
+}
+

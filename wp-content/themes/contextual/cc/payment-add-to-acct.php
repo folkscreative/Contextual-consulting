@@ -94,6 +94,12 @@ function cc_training_create_add_to_account_registration($user_id, $training_id, 
     // Payment status and method
     $payment['status'] = 'Payment not needed';
     $payment['pmt_method'] = 'add_to_account';
+
+    // Set disc_code so this registration appears in portal dashboard queries
+    $portal_user = get_user_meta( $user_id, 'portal_user', true );
+    if ( $portal_user !== '' ) {
+        $payment['disc_code'] = strtoupper( $portal_user );
+    }
     
     // Source tracking
     $payment['source'] = 'Add to account offer';

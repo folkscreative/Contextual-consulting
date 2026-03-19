@@ -196,9 +196,12 @@ function cc_training_can_add_to_account($user_id, $training_id) {
     
     $portal_user = get_user_meta($user_id, 'portal_user', true);
     if ( $portal_user === 'cnwl' && cc_registration_user_dets_complete( $user_id ) ) {
-        return true;
+        $outside_allowance = get_post_meta( $training_id, '_cnwl_outside_allowance', true );
+        if ( $outside_allowance === 'yes' ) {
+            return true;
+        }
     }
-    
+
     /*
     if( function_exists( 'contextual_get_user_subscription' ) ){
         $subscription_status = contextual_get_user_subscription($user_id);
