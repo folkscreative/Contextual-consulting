@@ -176,7 +176,9 @@ jQuery(document).ready(function($) {
     // save clicked on the currency changed
     $(document).on('click', '#chg-curr-save', function(){
         // what's the currency now
-        var currNow = $('#currency').val();
+      //  var currNow = $('#currency').val();
+        var currNow = $('input[name="currency"]').first().val();
+        
         // what's it to be set to
         var currNew = $('#chg-curr').val();
         // if unchanged, nothing to do
@@ -187,8 +189,11 @@ jQuery(document).ready(function($) {
                 .addClass('info');            
             var currLink = $('.cc-currency-changer').first();
             // get the new price for the training
-            var trainType = $('#training-type').val();
-            var trainID = $('#training-id').val();
+           /*  var trainType = $('#training-type').val();
+            var trainID = $('#training-id').val(); */
+            var trainType = $('input[name="training-type"]').first().val();
+            var trainID = $('input[name="workshop-id"]').first().val();
+            
             $.ajax({
                 url : ccAjax.ajaxurl,
                 type: "POST",

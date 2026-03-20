@@ -270,94 +270,129 @@ function cc_currencies_modal_html(){
 // change currency
 add_action('wp_ajax_change_currency', 'cc_currencies_change_currency');
 add_action('wp_ajax_nopriv_change_currency', 'cc_currencies_change_currency');
+
 function cc_currencies_change_currency(){
-	$response = array(
-		'status' => 'error',
-		'msg' => 'Something went wrong. <i class="fa-solid fa-face-frown"></i> Unable to change currency.',
-		'price' => '',
-		'raw_price' => 0,
-		'non_early' => '',
-		'earlybird' => 'n',
-		'student_price' => 0,
-		'student_price_formatted' => '',
-		'gift_voucher_value' => '',
-		'currency' => '',
-		'icon' => '',
-		'event' => array(),
-	);
-	$train_type = '';
-	if(isset($_POST['trainType']) && $_POST['trainType'] == 'w' || $_POST['trainType'] == 'r'){
-		$train_type = $_POST['trainType'];
-	}
-	$train_id = 0;
-	if(isset($_POST['trainID']) ){
-		$train_id = (int) $_POST['trainID'];
-	}
-	$currency = '';
-	if(isset($_POST['currency']) && in_array($_POST['currency'], cc_valid_currencies()) ){
-		$currency = $_POST['currency'];
-		$user_id = get_current_user_id(); // 0 if no user logged in
-		if($user_id > 0){
-			update_user_meta($user_id, 'currency', $currency);
-		}
-	}
-	if($train_type <> '' && $train_id > 0 && $currency <> ''){
-		if($train_type == 'w'){
-			$workshop_pricing = cc_workshop_price($train_id, $currency);
-			$response['price'] = $workshop_pricing['price_text'];
-			$response['raw_price'] = $workshop_pricing['raw_price'];
-			$response['student_price'] = $workshop_pricing['student_price'];
-			$response['student_price_formatted'] = $workshop_pricing['student_price_formatted'];
-			$response['non_early'] = $workshop_pricing['non_early_price'];
-			if($workshop_pricing['earlybird_msg'] <> ''){
-				$response['earlybird'] = 'y';
-			}
-			$response['gift_voucher_value'] = cc_voucher_offer_value($workshop_pricing['curr_found']);
-			$response['currency'] = $workshop_pricing['curr_found'];
-			$response['icon'] = cc_currencies_icon($workshop_pricing['curr_found']);
-			$response['status'] = 'ok';
-			$response['msg'] = '';
-			for ($i = 1; $i<16; $i++) {
-				$event_name = get_post_meta( $train_id, 'event_'.$i.'_name', true );
-				if($event_name == ''){
-					$response['event'][$i] = '';
-				}else{
-					$event_free = get_post_meta( $train_id, 'event_'.$i.'_free', true );
-					if($event_free == 'yes'){
-						$response['event'][$i] = 'FREE';
-					}else{
-						$response['event'][$i] = workshops_event_price($train_id, $i, $currency);
-						/* taken out cos missing currencies are too complicated! :-(
-						$event_price = workshops_event_price($train_id, $i, $currency);
-						if($event_price > 0){
-							$response['event'][$i] = workshops_pretty_price($event_price, $currency);
-						}else{
-							$event_price = workshops_event_price($train_id, $i, 'GBP');
-							$response['event'][$i] = workshops_pretty_price($event_price, 'GBP');
-						}
-						*/
-					}
-				}
-			}
-		}else{
-			$recording_pricing = cc_recording_price($train_id, $currency);
-			$response['raw_price'] = $recording_pricing['raw_price'];
-			$response['currency'] = $recording_pricing['curr_found'];
-			$response['price'] = workshops_pretty_price($recording_pricing['raw_price'], $recording_pricing['curr_found']);
-			$response['student_price'] = $recording_pricing['student_price'];
-			$response['student_price_formatted'] = $recording_pricing['student_price_formatted'];
-			$response['non_early'] = $recording_pricing['non_early_price'];
-			if($recording_pricing['earlybird_msg'] <> ''){
-				$response['earlybird'] = 'y';
-			}
-			$response['icon'] = cc_currencies_icon($recording_pricing['curr_found']);
-			$response['gift_voucher_value'] = cc_voucher_offer_value($recording_pricing['curr_found']);
-			$response['status'] = 'ok';
-			$response['msg'] = '';
-		}
-	}
+
+    $response = array(
+        'status' => 'error',
+        'msg' => 'Something went wrong. Unable to change currency.',
+        'price' => '',
+        'raw_price' => 0,
+        'non_early' => '',
+        'earlybird' => 'n',
+        'student_price' => 0,
+        'student_price_formatted' => '',
+        'gift_voucher_value' => '',
+        'currency' => '',
+        'icon' => '',
+        'event' => array(),
+    );
+
+    // ✅ FIXED condition
+    $train_type = '';
+    if(isset($_POST['trainType']) && ($_POST['trainType'] == 'w' || $_POST['trainType'] == 'r')){
+        $train_type = sanitize_text_field($_POST['trainType']);
+    }
+
+    $train_id = isset($_POST['trainID']) ? intval($_POST['trainID']) : 0;
+
+    $currency = '';
+    if(isset($_POST['currency']) && in_array($_POST['currency'], cc_valid_currencies())){
+        $currency = sanitize_text_field($_POST['currency']);
+
+        // save user meta
+        $user_id = get_current_user_id();
+        if($user_id > 0){
+            update_user_meta($user_id, 'currency', $currency);
+        }
+
+        // 🔥 IMPORTANT: set cookie
+        cc_currencies_set_cookie($currency);
+    }
+
+    // ❌ Stop if missing
+    if(empty($train_type) || empty($train_id) || empty($currency)){
+        $response['msg'] = 'Missing required data';
+        echo json_encode($response);
+        wp_die();
+    }
+
+    // =========================
+    // WORKSHOP
+    // =========================
+    if($train_type == 'w'){
+
+        $workshop_pricing = cc_workshop_price($train_id, $currency);
+
+        $response['price'] = $workshop_pricing['price_text'];
+        $response['raw_price'] = $workshop_pricing['raw_price'];
+        $response['student_price'] = $workshop_pricing['student_price'];
+        $response['student_price_formatted'] = $workshop_pricing['student_price_formatted'];
+        $response['non_early'] = $workshop_pricing['non_early_price'];
+
+        if($workshop_pricing['earlybird_msg'] != ''){
+            $response['earlybird'] = 'y';
+        }
+
+        $response['gift_voucher_value'] = cc_voucher_offer_value($currency);
+
+        // ✅ use selected currency
+        $response['currency'] = $currency;
+
+        $response['icon'] = cc_currencies_icon($currency);
+
+        // events
+        for ($i = 1; $i < 16; $i++) {
+
+            $event_name = get_post_meta($train_id, 'event_'.$i.'_name', true);
+
+            if($event_name == ''){
+                $response['event'][$i] = '';
+            } else {
+
+                $event_free = get_post_meta($train_id, 'event_'.$i.'_free', true);
+
+                if($event_free == 'yes'){
+                    $response['event'][$i] = 'FREE';
+                } else {
+                    $response['event'][$i] = workshops_event_price($train_id, $i, $currency);
+                }
+            }
+        }
+
+        $response['status'] = 'ok';
+        $response['msg'] = '';
+
+    }
+
+    // =========================
+    // RECORDING
+    // =========================
+    else {
+
+        $recording_pricing = cc_recording_price($train_id, $currency);
+
+        $response['raw_price'] = $recording_pricing['raw_price'];
+        $response['currency'] = $currency;
+        $response['price'] = workshops_pretty_price($recording_pricing['raw_price'], $currency);
+
+        $response['student_price'] = $recording_pricing['student_price'];
+        $response['student_price_formatted'] = $recording_pricing['student_price_formatted'];
+        $response['non_early'] = $recording_pricing['non_early_price'];
+
+        if($recording_pricing['earlybird_msg'] != ''){
+            $response['earlybird'] = 'y';
+        }
+
+        $response['icon'] = cc_currencies_icon($currency);
+        $response['gift_voucher_value'] = cc_voucher_offer_value($currency);
+
+        $response['status'] = 'ok';
+        $response['msg'] = '';
+    }
+
     echo json_encode($response);
-    die();
+    wp_die();
 }
 
 // money_format is deprecated in phpv7.4
