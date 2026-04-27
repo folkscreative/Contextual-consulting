@@ -10,6 +10,8 @@ function cc_myacct_details(){
 	$portal_admin = get_user_meta( $user_info->ID, 'portal_admin', true);
     $user_job = get_user_meta( $user_info->ID, 'job', true);
     $bacb_num = get_user_meta( $user_info->ID, 'bacb_num', true);
+	$license_number = get_user_meta( $user_info->ID, 'license_number', true);
+
 	$html = '
 	<h3 class="d-md-none">My profile</h3>
 	<div class="myacct-panel myacct-details-panel dark-bg">
@@ -106,8 +108,12 @@ function cc_myacct_details(){
 	$html .= '
 			<div class="row">
 				<div id="bacb-wrap" class="col-lg-6">
-					<label for="bacb_num" class="form-label">Participant BACB certification number</label>
+					<label for="bacb_num" class="form-label">BACB certification number (if required)</label>
 					<input type="text" id="bacb_num" name="bacb_num" class="form-control form-control-lg" value="'.$bacb_num.'">
+				</div>
+				<div id="license_number-wrap" class="col-lg-6">
+					<label for="license_number" class="form-label">NY state psychologist licence number (if required)</label>
+					<input type="text" id="license_number" name="license_number" class="form-control form-control-lg" value="'.$license_number.'">
 				</div>
 			</div>';
 	if( $portal_user == '' || $portal_admin == 'yes' ){
@@ -316,6 +322,16 @@ function myacct_details_update(){
 				$flds_updated[] = 'bacb_num';
 			}
 		}
+				if( isset( $_POST['license_number'] ) && $_POST['license_number'] <> '' ){
+			$new_value = stripslashes( sanitize_text_field( $_POST['license_number'] ) );
+			$current_value = get_user_meta( $user_info->ID, 'license_number', true );
+			if( $new_value <> $current_value ){
+				update_user_meta( $user_info->ID, 'license_number', $new_value );
+				$flds_updated[] = 'license_number';
+			}
+		}
+
+
 
 		if(isset($_POST['pswrd']) && $_POST['pswrd'] <> ''){
 			$new_value = $_POST['pswrd']; // do not sanitise this as it may remove required chars

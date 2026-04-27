@@ -258,8 +258,6 @@ function cnwl_stats_report(){
 
 								$pmt_html = $rec_ids['pmt_id'];
 
-								$reg_html = date('j/m/Y', strtotime($payment_data['last_update']));
-
 								$rec_html = $rec_ids['rec_id'].': ';
 								/*
 								$title = get_the_title($rec_ids['rec_id']);
@@ -274,6 +272,7 @@ function cnwl_stats_report(){
 								$cancelled = false;
 								if($rec_ids['pmt_id'] > 0){
 									$payment_data = cc_paymentdb_get_payment($rec_ids['pmt_id']);
+									$reg_html = date('j/m/Y', strtotime($payment_data['last_update']));
 									if($payment_data['status'] == 'Cancelled'){
 										$cancelled = true;
 										$count_r_canc ++;
@@ -668,12 +667,23 @@ function cc_cnwl_generate_csv(){
 			if(in_array($rec_ids['rec_id'], $linked_recordings)) continue;
 
 			if($rec_ids['pmt_id'] == 0) continue;
-
+/* 
 			$pmt_html = $rec_ids['pmt_id'];
 
 			$reg_html = date('j/m/Y', strtotime($payment_data['last_update']));
 
-			$rec_html = $rec_ids['rec_id'].': ';
+			$rec_html = $rec_ids['rec_id'].': '; */
+
+			$pmt_html = $rec_ids['pmt_id'];
+
+if($rec_ids['pmt_id'] > 0){
+    $payment_data = cc_paymentdb_get_payment($rec_ids['pmt_id']);
+    $reg_html = date('d/m/Y', strtotime($payment_data['last_update']));
+}else{
+    $reg_html = '';
+}
+
+$rec_html = $rec_ids['rec_id'].': ';
 			$rec_html .= html_entity_decode( get_the_title( $rec_ids['rec_id'] ) );
 
 			$cancelled = false;

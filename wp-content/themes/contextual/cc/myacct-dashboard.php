@@ -117,7 +117,7 @@ function cc_myacct_dashboard( $org='' ){
 
         $start_date_str = dashboard_org_start_date($portal_user);
         $start_date = new DateTime($start_date_str);
-
+        $regs = dashboard_get_reg_stats_top( $portal_user );
         $html .= '<h3>';
         switch ( $portal_user ) {
             case 'nlft': $html .= 'North London NHS Foundation Trust'; break;
@@ -285,10 +285,11 @@ while ($start <= $end) {
     }
 
     $month_rows[$month_key] = [
-        'label'  => $month_label,
-        'count'  => $month_stats['count'],
-        'amount' => $month_stats['amount'],
-        'key'    => $start->format('Y-m')
+        'label'             => $month_label,
+        'count'             => $month_stats['count'],
+        'amount'            => $month_stats['amount'],
+        'outside_allowance' => $month_stats['outside_allowance'] ?? 0,
+        'key'               => $start->format('Y-m')
     ];
 
     $start->modify('+1 month');
@@ -296,6 +297,18 @@ while ($start <= $end) {
         $month_rows = array_reverse($month_rows, true);
 
         foreach ($month_rows as $month_data) {
+
+            $oa_line = '';
+            if ( $portal_user === 'cnwl' && $month_data['outside_allowance'] > 0 ) {
+                $oa_line = '
+                <div class="row py-1">
+                    <div class="col-4 ps-4 text-muted small">
+                        <i class="fa-solid fa-circle-info"></i> incl. outside allowance
+                    </div>
+                    <div class="col-4 text-end text-muted small">' . $month_data['outside_allowance'] . '</div>
+                    <div class="col-4"></div>
+                </div>';
+            }
 
             $html .= '
             <div class="row align-items-center border-bottom py-2">
@@ -313,6 +326,7 @@ while ($start <= $end) {
                     </a>
                 </div>
             </div>
+            ' . $oa_line . '
             <div class="row details-row" id="details-' . $month_data['key'] . '" style="display:none;">
                 <div class="col-12">
                     <div class="py-2 px-3 border-start border-2 border-primary" id="details-content-' . $month_data['key'] . '">
@@ -322,11 +336,82 @@ while ($start <= $end) {
             </div>';
         }
 
+        $html .= '
+			<div class="row align-items-center border-bottom py-2">
+				<div class="col-4"><strong>All</strong></div>
+				<div class="col-4 text-end">'.$regs['total_count'].'</div>
+				<div class="col-3 text-end">&pound;'.number_format( $regs['total_amount'], 2 ).'</div>
+			</div>';
+
+		$users = dashboard_get_user_stats_top( $portal_user );
+		$html .= '<h4 class="mb-0 mt-5">Top users</h4>';
+		if( empty( $users ) ){
+			$html .= '<p>No registrations found</p>';
+		}else{
+			// header
+			$html .= '
+				<div class="row align-items-center border-bottom py-2">
+					<div class="col-8">&nbsp;</div>
+					<div class="col-3 text-end"><strong>Registrations</strong></div>
+				</div>';
+			// top 10 users
+			foreach ($users as $user) {
+				$user_data = get_user_by( 'id', $user['reg_userid'] );
+				$user_name = $user_data->first_name . ' ' . $user_data->last_name;
+			    $user_email = $user_data->user_email;
+			    $user_id = $user['reg_userid'];
+
+			    $html .= '
+			    <div class="row user-row align-items-center border-bottom py-2" data-user-id="'.$user_id.'">
+			        <div class="col-8"><strong>'.$user_name.'</strong> ('.$user_email.')</div>
+			        <div class="col-3 text-end">'.$user['payment_count'].'</div>
+			        <div class="col-1 text-end">
+			            <a href="#" class="dashboard-user-details" data-user-id="'.$user_id.'" data-org="' . esc_attr($portal_user) . '">
+			                <i class="fa-regular fa-square-plus"></i>
+			            </a>
+			        </div>
+			    </div>
+			    <div class="row user-details" id="user-details-'.$user_id.'" style="display:none;">
+			        <div class="col-12">
+			            <div class="py-2 px-3 border-start border-2 border-primary user-detail-list">
+			                <em>Loading...</em>
+			            </div>
+			        </div>
+			    </div>';
+			}
+			$html .= '<div class="text-end mt-2"><a href="#"" id="show-all-users" data-org="' . esc_attr($portal_user) . '">Show all users</a></div>';
+			$html .= '<div id="user-stats-container"><!-- all user rows inserted here --></div>';
+		}
+
+		// icon key
+		$html .= '<h4 class="mb-1 mt-5">Key</h4>';
+		
+		// Attendance icons
+		$html .= '<h6 class="mb-0">Live training</h6>';
+		$html .= '<p class="small"><i class="fa-solid fa-fw fa-circle-check text-success"></i> = Attended the live training<br>';
+		$html .= '<i class="fa-solid fa-fw fa-video text-primary"></i> = Did not attend live but viewed the recording<br>';
+		$html .= '<i class="fa-solid fa-fw fa-video-slash text-danger"></i> = Did not attend live training or watch recording before expiry<br>';
+		$html .= '<i class="fa-solid fa-fw fa-hourglass-half"></i> = Training not started yet<br>';
+		$html .= '<i class="fa-solid fa-fw fa-video text-warning"></i> = Did not attend live but can watch the recording<br>';
+		$html .= '<i class="fa-solid fa-fw fa-circle-xmark text-danger"></i> = Did not attend the training (no recording available)<br>';
+		$html .= '<i class="fa-solid fa-fw fa-person-chalkboard"></i> = Training in progress</p>';
+		
+		$html .= '<h6 class="mb-0">On-demand</h6>';
+		$html .= '<p class="small"><i class="fa-solid fa-fw fa-circle-check text-success"></i> = Viewed the training<br>';
+		$html .= '<i class="fa-solid fa-fw fa-circle-xmark text-danger"></i> = Training not watched before expiry<br>';
+		$html .= '<i class="fa-solid fa-fw fa-hourglass-half"></i> = Training available to watch</p>';
+		
+		// Registration status indicators
+		$html .= '<h6 class="mb-0">Registration status</h6>';
+		$html .= '<p class="small"><span style="text-decoration: line-through;">Strikethrough text</span> = Registration was cancelled<br>';
+		$html .= '<small class="text-muted">(S/G)</small> or <small class="text-muted">(Series/Group)</small> = Part of a series or group registration</p>';
+
+	}else{
+			return '<h3>You do not have access to this.</h3>';
+	}
         $html .= '<div class="mb-5">&nbsp;</div>';
 
-    } else {
-        return '<h3>You do not have access to this.</h3>';
-    }
+    
 
     return $html;
 }
@@ -442,8 +527,38 @@ function dashboard_get_month_stats_filtered(
         ARRAY_A
     );
 
+    // Count outside-allowance (Add to Account) registrations separately
+    $oa_query = "
+        SELECT COUNT(DISTINCT p.ID) AS oa_count
+        FROM $payments_table p
+        JOIN {$wpdb->users} u ON u.ID = p.reg_userid
+        $join_service
+        $join_borough
+        $join_role
+        WHERE p.last_update BETWEEN %s AND %s
+            AND p.disc_code = %s
+            AND p.pmt_method = 'add_to_account'
+            AND (
+                p.status = 'Payment not needed'
+                OR p.status = 'Cancelled'
+                OR p.status LIKE 'Linked to #%%'
+            )
+            AND (
+                p.type = 'recording'
+                OR p.type = ''
+                OR p.type IS NULL
+            )
+    ";
+    $oa_params = $params;
+    $oa_result = $wpdb->get_row(
+        $wpdb->prepare($oa_query, $oa_params),
+        ARRAY_A
+    );
+
     return [
-        'count'  => !empty($result['count']) ? (int) $result['count'] : 0,
-        'amount' => !empty($result['amount']) ? (float) $result['amount'] : 0
+        'count'             => !empty($result['count']) ? (int) $result['count'] : 0,
+        'amount'            => !empty($result['amount']) ? (float) $result['amount'] : 0,
+        'outside_allowance' => !empty($oa_result['oa_count']) ? (int) $oa_result['oa_count'] : 0,
     ];
+
 }

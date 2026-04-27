@@ -858,6 +858,173 @@ if( isset( $_GET['c'] ) && $_GET['c'] <> '' ){
 
 		$pdf->Output('certificate.pdf', 'I');
 
-	}
+	
+	 }elseif( $parms['cert'] == 'y' ){
+
+    cc_cert_log_request( $parms['user_id'], $parms['training_id'], $parms['event_id'] );
+
+    $user_info = get_userdata($parms['user_id']);
+
+    $license_number = get_user_meta($parms['user_id'], 'license_number', true);
+    $licensed_profession = get_user_meta($parms['user_id'], 'licensed_profession', true);
+
+    $the_title   = html_entity_decode( get_the_title( $parms['training_id'] ) );
+    $presenters  = cc_presenters_names($parms['training_id'], 'none');
+    $num_credits = get_post_meta( $parms['training_id'], 'ce_credits', true );
+
+    if( course_training_type( $parms['training_id'] ) == 'workshop' ){
+        $pretty_dates   = workshop_calculated_prettydates( $parms['training_id'] );
+        $date_text = 'hosted on '.$pretty_dates['london_date'];
+        $attendance_text = 'has attended, in its entirety, the following continuing education activity sponsored by Contextual Consulting';
+    } else {
+        $date_text = 'completed on '.date('jS M Y');
+        $attendance_text = 'has completed the following on-demand continuing education activity sponsored by Contextual Consulting';
+    }
+
+    $pdf = new CCCertPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+    $pdf->SetMargins(0, 0, 0);
+    $pdf->SetAutoPageBreak(false, 0);
+    $pdf->AddPage();
+
+    // ================= LOGO =================
+    //$pdf->Image(get_stylesheet_directory()."/inc/images/cclogo.png", 15, 10, 90);
+    $pdf->Image(
+    get_stylesheet_directory()."/inc/images/cclogo-clean.png",
+    15,
+    10,
+    70, // reduce width
+    '',
+    'PNG',
+    '',
+    'T',
+    false,
+    300,
+    '',
+    false,
+    false,
+    0,
+    false,
+    false,
+    false
+);
+    // ================= TITLE =================
+    $pdf->SetFont('helvetica', 'B', 22);
+    $pdf->SetTextColor(90,90,90);
+    $pdf->SetXY(0, 55);
+    $pdf->Cell(210, 10, 'Certificate of Attendance', 0, 1, 'C');
+
+    $pdf->SetFont('helvetica', '', 13);
+    $pdf->SetXY(0, 65);
+    $pdf->Cell(210, 8, 'This is to certify that:', 0, 1, 'C');
+     // ================= NAME =================
+$pdf->SetFont('helvetica', 'B', 22);
+$pdf->SetTextColor(70,70,70);
+$pdf->SetXY(0, 80);
+$pdf->Cell(0, 10, ucwords(strtolower($user_info->first_name.' '.$user_info->last_name)), 0, 1, 'C');
+
+// ================= LICENSE INFO =================
+$pdf->SetFont('helvetica', '', 12);
+$pdf->SetTextColor(80,80,80);
+$pdf->SetXY(0, 90);
+
+$license_text = '';
+
+if(!empty($licensed_profession)){
+    $license_text .= $licensed_profession;
+}
+
+if(!empty($license_number)){
+    $license_text .= (!empty($license_text) ? ' | ' : '') . 'License No: '.$license_number;
+}
+
+$pdf->Cell(0, 8, $license_text, 0, 1, 'C');
+// ================= DESCRIPTION =================
+$pdf->SetFont('helvetica', '', 12);
+$pdf->SetXY(25, 105);
+$pdf->MultiCell(160, 6,
+    'has attended, in its entirety, the following continuing education activity sponsored by Contextual Consulting',
+    0,
+    'C'
+);
+
+
+// ================= COURSE TITLE =================
+$pdf->SetFont('helvetica', 'B', 38); // 🔥 bigger like reference
+$pdf->SetTextColor(60,60,60);
+$pdf->SetXY(20, 120);
+$pdf->MultiCell(170, 13, $the_title, 0, 'C');
+
+
+// ================= PRESENTER =================
+$pdf->SetFont('helvetica', 'B', 16);
+$pdf->SetXY(0, 155);
+$pdf->Cell(0, 8, 'with '.$presenters, 0, 1, 'C');
+
+
+// ================= CREDITS =================
+$pdf->SetFont('helvetica', 'B', 24); // 🔥 strong emphasis
+$pdf->SetXY(0, 168);
+$pdf->Cell(0, 10, $num_credits.' CE credits', 0, 1, 'C');
+
+
+// ================= DATE =================
+$pdf->SetFont('helvetica', '', 13);
+$pdf->SetXY(0, 182);
+
+// workshop vs ondemand
+if( course_training_type( $parms['training_id'] ) == 'workshop' ){
+    //$date_text = 'hosted on '.$pretty_dates['london_date'];
+
+
+	$dates = workshop_calculated_prettydates( $parms['training_id'], cc_timezone_get_user_timezone( $parms['user_id'] ) );
+	if($dates['locale_date'] <> ''){
+			$date_text = 'hosted on '.$dates['locale_date'];
+		}
+  
+}else{
+
+	$dates = workshop_calculated_prettydates( $parms['training_id'], cc_timezone_get_user_timezone( $parms['user_id'] ) );
+	if($dates['locale_date'] <> ''){
+			$date_text = 'completed on '.$dates['locale_date'];
+		}
+   // .$dates;
+}
+
+$pdf->Cell(0, 8, $date_text, 0, 1, 'C');
+    // ================= SIGNATURE =================
+    $pdf->Image(get_stylesheet_directory()."/inc/images/cert_sig.png", 20, 200, 70);
+
+    // ================= RIGHT LOGO =================
+    $pdf->Image(get_stylesheet_directory()."/inc/images/cc_logo_only.png", 150, 200, 40);
+
+    // ================= SIGN TEXT =================
+    $pdf->SetFont('helvetica', 'B', 10);
+    $pdf->SetXY(20, 235);
+    $pdf->Cell(100, 5, 'Dr Joe Oliver - Managing Director', 0, 1, 'L');
+
+    $pdf->SetFont('helvetica', '', 10);
+    $pdf->SetXY(20, 240);
+    $pdf->Cell(100, 5, 'Contextual Consulting', 0, 1, 'L');
+
+    // ================= FOOTER =================
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->SetXY(20, 255);
+    $pdf->MultiCell(170, 5,
+        "Contextual Consulting is recognized by the New York State Education Department's State Board for Psychology as an approved provider of continuing education for licensed psychologists #PSY-0316.",
+        0,
+        'C'
+    );
+
+    $pdf->SetFont('helvetica', '', 8);
+    $pdf->SetXY(20, 270);
+    $pdf->MultiCell(170, 5,
+        "England, Oakmoore Court, Kingswood Road, Droitwich, WR9 0QH",
+        0,
+        'C'
+    );
+
+    $pdf->Output('ny_certificate.pdf', 'I');
+  }
 
 }

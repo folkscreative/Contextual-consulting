@@ -55,7 +55,144 @@ if (is_final_payment_back_button()) {
 // Initialize variables using token system
 $current_token = handle_registration_page_load();
 $registration_data = TempRegistration::get($current_token);
+$course_id = $registration_data->course_id;
+$course_status = get_post_meta($course_id, '_course_status', true);
+
+
+$user_id = get_current_user_id(); // 0 if not logged in
+$user_timezone = cc_timezone_get_user_timezone($user_id);
+$pretty_timezone = cc_timezone_get_user_timezone_pretty($user_id, $user_timezone);
+
+// Get workshop pricing for display (currency switcher, price display, etc.)
+$user_currency = cc_currency_get_user_currency();
+$workshop_pricing = cc_workshop_price($course_id, $user_currency);
+
+$from_price = $workshop_pricing['price_text'];
+$post_type = get_post_type($course_id);
+if($post_type == 'workshop'):
+if($from_price <> ''){
+
+}else{
+   wp_safe_redirect(home_url());
+    exit;
+}
+endif;
+
+if ($course_status == 'closed') {
+    wp_safe_redirect(home_url());
+    exit;
+} else {
+
 $form_data = json_decode($registration_data->form_data, true);
+$post_type = get_post_type($course_id);
+if($post_type == 'workshop'):
+//if(course)
+
+
+$user_currency = $form_data['currency'];
+$online_pmt_amt = get_post_meta($course_id, 'online_pmt_amt', true);
+$online_pmt_aud = get_post_meta($course_id, 'online_pmt_aud', true);
+$online_pmt_usd = get_post_meta($course_id, 'online_pmt_usd', true);
+$online_pmt_eur = get_post_meta($course_id, 'online_pmt_eur', true);
+$student_discount = get_post_meta($course_id, 'student_discount', true);
+$earlybird_discount = get_post_meta($course_id, 'earlybird_discount', true);
+
+$course  =array(
+'pricing' => array(
+ 'price_gbp' => $online_pmt_amt,
+            'price_usd' => $online_pmt_usd,
+            'price_eur' => $online_pmt_eur,
+            'price_aud' => $online_pmt_aud,
+            'student_discount' => $student_discount,
+            'early_bird_discount' => $earlybird_discount
+
+)
+
+);
+
+//print_r($course);
+
+
+$student_pricing = course_student_pricing( $course, $user_currency );
+
+// Step 1: Set base price (always)
+switch ($form_data['currency']) {
+    case 'USD':
+        $price = $course['pricing']['price_usd'] ?? 0;
+        break;
+    case 'GBP':
+        $price = $course['pricing']['price_gbp'] ?? 0;
+        break;
+    case 'EUR':
+        $price = $course['pricing']['price_eur'] ?? 0;
+        break;
+    case 'AUD':
+        $price = $course['pricing']['price_aud'] ?? 0;
+        break;
+    default:
+        $price = 0;
+}
+
+// Always set raw price (original)
+$form_data['raw_price'] = $price;
+
+
+// Step 2: Apply student pricing separately
+if (
+    $form_data['student'] === 'yes' &&
+    !empty($student_pricing['student_price']) &&
+    $student_pricing['student_price'] > 0
+) {
+    $form_data['student_price'] = $student_pricing['student_price'];
+} else {
+    $form_data['student_price'] = 0;
+}
+    else:
+$course = course_get_all( $course_id );
+$user_currency = $form_data['currency'];
+
+        // Step 1: Set base price (always)
+switch ($form_data['currency']) {
+    case 'USD':
+        $price = $course['pricing']['price_usd'] ?? 0;
+        break;
+    case 'GBP':
+        $price = $course['pricing']['price_gbp'] ?? 0;
+        break;
+    case 'EUR':
+        $price = $course['pricing']['price_eur'] ?? 0;
+        break;
+    case 'AUD':
+        $price = $course['pricing']['price_aud'] ?? 0;
+        break;
+    default:
+        $price = 0;
+
+}
+        $student_pricing = course_student_pricing( $course, $user_currency );
+
+ //print_r($student_pricing);
+
+
+        if (
+    $form_data['student'] === 'yes' &&
+    !empty($student_pricing['student_price']) &&
+    $student_pricing['student_price'] > 0
+) {
+    $form_data['student_price'] = $student_pricing['student_price'];
+} else {
+    $form_data['student_price'] = 0;
+}
+
+       
+
+
+
+// Always set raw price (original)
+$form_data['raw_price'] = $price;
+
+    endif;
+
 $current_step = $registration_data->current_step;
 
 $user_id = $registration_data->user_id;
@@ -893,3 +1030,4 @@ while ( have_posts() ) : the_post(); ?>
 <?php
 endwhile;
 get_footer();
+}

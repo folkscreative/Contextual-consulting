@@ -301,6 +301,7 @@ function render_course_details_metabox( $post ){
     $cert_bacb = cc_certs_setting( $post->ID, 0, 'bacb' );
     $cert_nbcc = cc_certs_setting( $post->ID, 0, 'nbcc' );
     $cert_icf = cc_certs_setting( $post->ID, 0, 'icf' );
+    $cert_ny = cc_certs_setting( $post->ID, 0, 'ny' );
     ?>
     <div class="row">
         <div class="col-2">
@@ -336,6 +337,13 @@ function render_course_details_metabox( $post ){
             <select name="cert_icf" id="cert_icf" class="form-control">
                 <option value="no" <?php selected( 'no', $cert_icf ); ?>>No</option>
                 <option value="yes" <?php selected( 'yes', $cert_icf ); ?>>Yes</option>
+            </select>
+        </div>
+        <div class="col-2">
+            <label for="cert_ny" class="form-label">NY State Cert?</label><br>
+            <select name="cert_ny" id="cert_ny" class="form-control">
+                <option value="no" <?php selected( 'no', $cert_ny ); ?>>No</option>
+                <option value="yes" <?php selected( 'yes', $cert_ny ); ?>>Yes</option>
             </select>
         </div>
     </div>
@@ -1092,6 +1100,7 @@ function course_edit_save_post( $post_id, $post, $update ) {
         'cert_bacb' => 'cert_bacb',
         'cert_nbcc' => 'cert_nbcc',
         'cert_icf' => 'cert_icf',
+        'cert_ny' => 'cert_ny',
         'mailster_list' => 'mailster_list',
         'registration_message' => 'registration_message',
         'workshop_joining' => 'workshop_joining',

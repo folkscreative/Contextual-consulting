@@ -16,7 +16,8 @@ function cc_certs_training( $training_id, $event_id=0 ){
 	if( $cert_cc == 'yes' ) return true;
 	$ce_credits = get_post_meta( $training_id, $meta_prefix.'ce_credits', true );
 	if( is_numeric( $ce_credits ) && $ce_credits > 0 ){
-		$other_certs = array( 'apa', 'bacb', 'nbcc', 'icf' );
+		//$other_certs = array( 'apa', 'bacb', 'nbcc', 'icf' );
+		$other_certs = array( 'apa', 'bacb', 'nbcc', 'icf', 'ny' );
 		foreach ($other_certs as $other_cert) {
 			$this_cert = cc_certs_setting( $training_id, $event_id, $other_cert );
 			if( $this_cert == 'yes' ){
@@ -65,6 +66,7 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 		'b' => false,
 		'n' => false,
 		'i' => false,
+		'y' => false, // ✅ NEW
 	);
 	$certs_r = array(
 		'r' => false,
@@ -72,6 +74,7 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 		'b' => false,
 		'n' => false,
 		'i' => false,
+		'y' => false, // ✅ NEW
 	);
 
 	$training_type = get_post_type( $training_id );
@@ -127,7 +130,7 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 	//  the other certs all need credits, feedback and, for a recording, quiz completion (or override)
 	$ce_credits = get_post_meta( $training_id, $meta_prefix.'ce_credits', true );
 	if( is_numeric( $ce_credits ) && $ce_credits > 0 ){
-		$cert_types = array( 'apa', 'bacb', 'nbcc', 'icf' );
+		/* $cert_types = array( 'apa', 'bacb', 'nbcc', 'icf' );
 		foreach ($cert_types as $cert_type) {
 			// $cert_switch = cc_certs_setting( $training_id, $event_id, $cert_type );
 			// if( $cert_switch == 'yes' ){
@@ -145,7 +148,45 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 					$count_certs_r ++;
 				}
 			}			
+		} */
+
+        $cert_types = array(  'apa', 'bacb', 'nbcc', 'icf','ny' );
+
+		$cert_map = array(
+			
+			'apa'  => 'a',
+			'bacb' => 'b',
+			'nbcc' => 'n',
+			'icf'  => 'i',
+			'ny'   => 'y', // ✅ FIX
+			
+		);
+		//print_r($certs_r);
+      
+		foreach ($cert_types as $cert_type) {
+       // print_r(cc_certs_offer_this_cert( $cert_type, $training_id, $event_id, $user_id ));
+
+
+			if( cc_certs_offer_this_cert( $cert_type, $training_id, $event_id, $user_id ) ){
+
+				$cert_letter = $cert_map[$cert_type];
+
+				if( $training_type == 'workshop' ){
+					$certs_w[$cert_letter] = true;
+					$count_certs_w ++;
+					
+					if( $wshop_rec_id > 0 ){
+						$certs_r[$cert_letter] = true;
+						$count_certs_r ++;
+					}
+
+				} else {
+					$certs_r[$cert_letter] = true;
+					$count_certs_r ++;
+				}
+			}
 		}
+
 	}
 
 	if( $count_certs_w == 0 && $count_certs_r == 0 ) return '';
@@ -153,13 +194,21 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 	// now build the button(s)
 	$html = $btn_r = $btn_w = '';
 
+
+ 	/* 
+	print_r($certs_r);
+    die; */ 
 	if( $count_certs_w > 0 ){
 		$btn_w .= '<div class="dropdown">';
-		$btn_w .= '<button type="button" class="btn btn-training btn-sm mb-3 w-100 dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-award fa-fw"></i> Live training certificate</button>';
+		$btn_w .= '<button type="button" class="btn btn-training 123 btn-sm mb-3 w-100 dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-award fa-fw"></i> Live training certificate</button>';
 		$btn_w .= '<ul class="dropdown-menu">';
 		foreach ( $certs_w as $cert => $value) {
 			if( $value ){
 				$cert_parms = cc_certs_encode_parms( $cert, $training_id, $event_id, $user_id );
+/* 
+                 print_r($cert);
+				 echo "<hr/>";
+			 */
 				$btn_text = cc_certs_btn_text( $cert );
 				$url = add_query_arg( array( 'c' => $cert_parms ), site_url( '/training-certificate/' ) ); // note new URL
 				$btn_w .= '<li><a class="dropdown-item" href="'.esc_url( $url ).'" target="_blank">'.$btn_text.'</a></li>';
@@ -167,6 +216,8 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 		}
 		$btn_w .= '</ul>';
 		$btn_w .= '</div><!-- .dropdown -->';
+
+		//die('demo');
 	}
 
 	if( $count_certs_r > 0 ){
@@ -176,8 +227,11 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 			$recording_id = $training_id;
 		}
 		$btn_r .= '<div class="dropdown">';
-		$btn_r .= '<button type="button" class="btn btn-training btn-sm mb-3 w-100 dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-award fa-fw"></i> On-demand certificate</button>';
+		$btn_r .= '<button type="button" class="btn btn-training 567 btn-sm mb-3 w-100 dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-award fa-fw"></i> On-demand certificate</button>';
 		$btn_r .= '<ul class="dropdown-menu">';
+
+
+		
 		foreach ( $certs_r as $cert => $value) {
 			if( $value ){
 				$cert_parms = cc_certs_encode_parms( $cert, $recording_id, 0, $user_id );
@@ -203,72 +257,7 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 		$html .= '</div>';
 	}
 
-	/*
-	if( $count_certs_r == 0 ){
-		// just a live training button
-	}elseif( $count_certs_w == 0 ){
-		// just an on-demand btn
-	}else{
-		// a btn-group for each
-		$html .= '<div class="btn-group">';
-		$html .= '<div class="btn-group">';
-		$html .= '<button type="button" class="btn btn-training btn-sm mb-3 w-100 dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-award fa-fw"></i> Live training certificate</button>';
-		$html .= '<ul class="dropdown-menu">';
-		foreach ( $certs_w as $cert => $value) {
-			if( $value ){
-				$cert_parms = cc_certs_encode_parms( $cert, $training_id, $event_id, $user_id );
-				$btn_text = cc_certs_btn_text( $cert );
-				$url = add_query_arg( array( 'c' => $cert_parms ), site_url( '/training-certificate/' ) ); // note new URL
-				$html .= '<li><a class="dropdown-item" href="'.esc_url( $url ).'" target="_blank">'.$btn_text.'</a></li>';
-			}
-		}
-		$html .= '</ul>';
-		$html .= '</div><!-- .btn-group -->';
-		$html .= '<div class="btn-group">';
-		$html .= '<button type="button" class="btn btn-training btn-sm mb-3 w-100 dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-award fa-fw"></i> On-demand certificate</button>';
-		$html .= '<ul class="dropdown-menu">';
-		foreach ( $certs_r as $cert => $value) {
-			if( $value ){
-				$cert_parms = cc_certs_encode_parms( $cert, $wshop_rec_id, 0, $user_id );
-				$btn_text = cc_certs_btn_text( $cert );
-				$url = add_query_arg( array( 'c' => $cert_parms ), site_url( '/training-certificate/' ) ); // note new URL
-				$html .= '<li><a class="dropdown-item" href="'.esc_url( $url ).'" target="_blank">'.$btn_text.'</a></li>';
-			}
-		}
-		$html .= '</ul>';
-		$html .= '</div><!-- .btn-group -->';
-		$html .= '</div><!-- .btn-group -->';
-	}
-
-	/*
-	if( $count_certs == 1 ){
-		// just one cert to be offered, only need a simple button
-        $html = '<a class="btn btn-training btn-sm mb-3 w-100 cecert-btn" href="';
-        $cert_parms = '';
-        $btn_text = 'Your Certificate';
-        foreach ($certs as $cert => $value) {
-        	if( $value ){
-        		$cert_parms = cc_certs_encode_parms( $cert, $training_id, $event_id, $user_id );
-        		$btn_text = cc_certs_btn_text( $cert );
-        		break;
-        	}
-        }
-        $html .= add_query_arg( array( 'c' => $cert_parms ), site_url( '/training-certificate/' ) ); // note new URL
-        $html .= '" target="_blank"><i class="fa-solid fa-award fa-fw"></i> '.$btn_text.'</a>';
-	}else{
-		// many certs to be offered
-		$html = '<div class="dropdown"><button class="btn btn-training btn-sm mb-3 w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-award fa-fw"></i> Your certificate</button><ul class="dropdown-menu">';
-        foreach ($certs as $cert => $value) {
-        	if( $value ){
-        		$html .= '<li><a class="dropdown-item" href="';
-        		$cert_parms = cc_certs_encode_parms( $cert, $training_id, $event_id, $user_id );
-		        $html .= add_query_arg( array( 'c' => $cert_parms ), site_url( '/training-certificate/' ) ); // note new URL
-		        $html .= '" target="_blank">'.cc_certs_btn_text( $cert ).'</a></li>';
-        	}
-        }
-        $html .= '</ul></div>';
-	}
-	*/
+		
 	return $html;
 }
 
@@ -278,13 +267,15 @@ function cc_certs_button( $training_id, $event_id, $user_id, $bacb_ok ){
 // returns bool
 function cc_certs_offer_this_cert( $cert, $training_id, $event_id, $user_id ){
 	// is this cert offered for this training?
+ 
 	if( cc_certs_setting( $training_id, $event_id, $cert ) <> 'yes' ){
 		return false;
 	}
 	// has the user got sufficient attendance to obtain the cert? This also checks the quiz for recordings
-	if( ! cc_ce_credits_sufficient_attendance( $training_id, $event_id, $user_id ) ){
+    if( ! cc_ce_credits_sufficient_attendance( $training_id, $event_id, $user_id ) ){
 		return false;
 	}
+	
 	// that's enough for a CC Cert
 	if( $cert == 'cc' ){
 		return true;
@@ -292,11 +283,11 @@ function cc_certs_offer_this_cert( $cert, $training_id, $event_id, $user_id ){
 	// others also need feedback
 	if( ! cc_feedback_submitted( $training_id, $event_id, $user_id ) ){
 		return false;
-	}
+	} 
 	// and if it's BACB then they also need their cert num to be set
-	if( $cert == 'bacb' && get_user_meta( $user_id, 'bacb_num', true ) == '' ){
+	 if( $cert == 'bacb' && get_user_meta( $user_id, 'bacb_num', true ) == '' ){
 		return false;
-	}
+	} 
 	return true;
 }
 
@@ -354,6 +345,12 @@ function cc_certs_encode_parms( $cert, $training_id, $event_id, $user_id ){
 			$string = $training_id.'|'.$event_id.'|'.$user_id.'|'.$daft_number;
 			return 'i'.base64_encode($string);
 			break;
+
+		case 'y':
+		$daft_number = $training_id * $training_id + $user_id * $user_id + $event_id * $event_id + 92317;
+		$string = $training_id.'|'.$event_id.'|'.$user_id.'|'.$daft_number;
+		return 'y'.base64_encode($string);
+		break;	
 
 		default:
 			return '';
@@ -439,6 +436,16 @@ function cc_certs_decode_parms( $string ){
 				$response['user_id'] = $user_id;
 			}
 			break;
+        case 'y':
+			list( $training_id, $event_id, $user_id, $daft_number ) = explode( "|", $parms );
+			if( $daft_number == $training_id * $training_id + $user_id * $user_id + $event_id * $event_id + 92317 ){
+				$response['cert'] = 'y';
+				$response['training_id'] = $training_id;
+				$response['event_id'] = $event_id;
+				$response['user_id'] = $user_id;
+			}
+           break;
+
 
 		default:
 			// code...
@@ -457,6 +464,7 @@ function cc_certs_btn_text( $cert ){
 		case 'b':		return 'BACB certificate';					break;
 		case 'n':		return 'NBCC certificate';					break;
 		case 'i':		return 'ICF certificate';					break;
+		case 'y':       return 'NY state psychologist CE certificate';break;
 		default:		return 'Your certificate';					break;
 	}
 }
@@ -507,6 +515,32 @@ function cc_certs_populate_new_cert_fields(){
 
 // get the certificate setting and use its default if not set
 // $cert should be 'cc', 'apa', 'bacb', 'nbcc' or 'icf'
+/* function cc_certs_setting( $training_id, $event_id, $cert ){
+	if( $event_id == 0 ){
+		$meta_value = get_post_meta( $training_id, 'cert_'.$cert, true );
+	}else{
+		$meta_value = get_post_meta( $training_id, 'event_'.$event_id.'_cert_'.$cert, true );
+	}	
+	if( $meta_value == '' ){
+		// defaults
+		switch ($cert) {
+			case 'cc':			$meta_value = 'yes';		break;
+			case 'apa':			$meta_value = 'no';			break;
+			case 'bacb':		$meta_value = 'no';			break;
+			case 'nbcc':		$meta_value = 'no';			break;
+			case 'icf':			$meta_value = 'no';			break;
+			case 'ny':
+    $ce_credits = get_post_meta( $training_id, 'ce_credits', true );
+    if( is_numeric($ce_credits) && $ce_credits > 0 ){
+        $meta_value = 'yes';
+    } else {
+        $meta_value = 'no';
+    }
+break;
+		}
+	}
+	return $meta_value;
+} */
 function cc_certs_setting( $training_id, $event_id, $cert ){
 	if( $event_id == 0 ){
 		$meta_value = get_post_meta( $training_id, 'cert_'.$cert, true );
@@ -521,15 +555,22 @@ function cc_certs_setting( $training_id, $event_id, $cert ){
 			case 'bacb':		$meta_value = 'no';			break;
 			case 'nbcc':		$meta_value = 'no';			break;
 			case 'icf':			$meta_value = 'no';			break;
+			case 'ny':          $meta_value = 'no';         break; // ✅ DEFAULT TO NO
+				/* $ce_credits = get_post_meta( $training_id, 'ce_credits', true );
+				if( is_numeric($ce_credits) && $ce_credits > 0 ){
+					$meta_value = 'yes';
+				} else {
+					$meta_value = 'no';
+				} */
 		}
 	}
 	return $meta_value;
 }
-
 // which certs are availabkle for a given training/event
 function cc_certs_for_training( $training_id, $event_id=0 ){
 	$certs = [];
-	$all_certs = array( 'apa', 'bacb', 'nbcc', 'icf' );
+	//$all_certs = array( 'apa', 'bacb', 'nbcc', 'icf' );
+	$all_certs = array( 'apa', 'bacb', 'nbcc', 'icf', 'ny' );
 	foreach ($all_certs as $cert) {
 		if( cc_certs_setting( $training_id, $event_id, $cert ) == 'yes' ){
 			$certs[] = $cert;
@@ -541,7 +582,8 @@ function cc_certs_for_training( $training_id, $event_id=0 ){
 // all certificates available for a bunch of different trainings
 function cc_certs_available_for( $training_ids ){
 	global $wpdb;
-	$all_certs = array( 'apa', 'bacb', 'nbcc', 'icf' );
+	//$all_certs = array( 'apa', 'bacb', 'nbcc', 'icf' );
+	$all_certs = array( 'apa', 'bacb', 'nbcc', 'icf', 'ny' );
 	$found_certs = array();
     $training_id_string = implode( ',', $training_ids );
 	foreach ($all_certs as $cert) {

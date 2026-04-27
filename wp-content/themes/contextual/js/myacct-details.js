@@ -175,6 +175,12 @@ jQuery(document).ready(function( $ ) {
 		if(bacb_num != ''){
 			$('#bacb_num').addClass('is-valid');
 		}
+		 //license_number
+		var license_number = $('#license_number').val();
+		if(license_number != ''){
+			$('#license_number').addClass('is-valid');
+		}
+
 		// password is not validated but we do check to make sure that errors are not bypassed
 		var pswrd = $('#pswrd1').val();
 		if($('#pswrd1-wrap').hasClass('error') || $('#pswrd2-wrap').hasClass('error')){
@@ -201,7 +207,8 @@ jQuery(document).ready(function( $ ) {
 	            	jobId: jobId,
 	            	pswrd: pswrd,
 	            	timezone: timezone,
-	            	bacb_num: bacb_num
+	            	bacb_num: bacb_num,
+					license_number : license_number
 	        	},
 	            cache: false,
 	            timeout: 25000,
